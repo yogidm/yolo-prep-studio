@@ -23,6 +23,24 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 
 ---
 
+| 📚 **Panduan Bawaan** | 9 sub-tab referensi lengkap langsung di dalam aplikasi |
+
+---
+
+## 📸 Tangkapan Layar
+
+### Tab Proyek — Setup awal proyek & kelas
+![Tab Proyek](docs/screenshots/01-proyek.png)
+
+### Tab Akuisisi — Ekstrak frame dari video atau capture webcam
+![Tab Akuisisi](docs/screenshots/02-akuisisi.png)
+
+### Tab Anotasi — Bounding box dengan warna tetap per kelas
+![Tab Anotasi](docs/screenshots/03-anotasi.png)
+
+---
+
+
 ## 🚀 Instalasi
 
 **Prasyarat:** Python 3.9+ dan pip.
