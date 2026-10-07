@@ -1,0 +1,45 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- YOLO Studio output (jangan di-commit) ---
+projects/
+01_raw/
+02_split/
+04_export/
+05_models/
+06_runs/
+*.pt
+*.onnx
+*.engine
+*.ipynb_checkpoints/
+dataset/
+datasets/
+
+# --- Log ---
+*.log
+
+# Folder uji coba pribadi
+uji-coba/

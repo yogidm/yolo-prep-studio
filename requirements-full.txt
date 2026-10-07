@@ -1,0 +1,4 @@
+# Dependensi opsional — untuk auto-suggest bbox & evaluasi
+# Install: pip install -r requirements-full.txt
+-r requirements.txt
+ultralytics>=8.0.0
