@@ -18,7 +18,7 @@ from pathlib import Path
 from datetime import datetime
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 
 try:
     import cv2
@@ -2077,6 +2077,22 @@ class TrainTab(ttk.Frame):
                 self._md("## 5. Download best.pt"),
                 self._code("from google.colab import files\n"
                            f"files.download('/content/drive/MyDrive/yolo_projects/{proj}/runs/train/weights/best.pt')"),
+                self._md("## 6. Download semua hasil training (ZIP)\n"
+                         "Setelah selesai, import `train_results.zip` ke aplikasi via tab **7. Evaluasi → Import Hasil Training**."),
+                self._code(
+                    "import shutil, os\n"
+                    f"src = '/content/drive/MyDrive/yolo_projects/{proj}/runs/train'\n"
+                    "if os.path.exists(src):\n"
+                    "    shutil.make_archive('/content/train_results', 'zip',\n"
+                    "                        root_dir=os.path.dirname(src), base_dir='train')\n"
+                    "    from google.colab import files\n"
+                    "    files.download('/content/train_results.zip')\n"
+                    "    print('✓ train_results.zip terunduh')\n"
+                    "    print('   Import ke aplikasi via: tab 7 → Import Hasil Training')\n"
+                    "else:\n"
+                    "    print('✗ Folder runs/train tidak ditemukan')\n"
+                ),
+            
             ]
         else:
             cells += [
@@ -2116,7 +2132,7 @@ class EvalTab(ttk.Frame):
         ttk.Label(self, text="7. Evaluasi Model",
                   font=("Segoe UI", 15, "bold")).grid(row=0, column=0, columnspan=3,
                                                       sticky="w", pady=(0, 4))
-        ttk.Label(self, text="Muat best.pt hasil Colab untuk cek performa.",
+        ttk.Label(self, text="Muat best.pt hasil Colab, atau import hasil training lengkap dari Drive.",
                   foreground=tc("fg_muted")).grid(row=1, column=0, columnspan=3,
                                                   sticky="w", pady=(0, 12))
 
@@ -2130,15 +2146,41 @@ class EvalTab(ttk.Frame):
         self.e_csv.grid(row=3, column=1, sticky="we", pady=4)
         ttk.Button(self, text="Browse...", command=self.pick_csv).grid(row=3, column=2, padx=4)
 
-        btns = ttk.Frame(self)
-        btns.grid(row=4, column=0, columnspan=3, sticky="w", pady=12)
-        ttk.Button(btns, text="🎯 Uji pada Split Test", command=self.run_val).pack(side="left", padx=4)
-        ttk.Button(btns, text="📊 Analisis results.csv", command=self.analyze_csv).pack(side="left", padx=4)
-        ttk.Button(btns, text="🖼  Prediksi Gambar", command=self.predict_image).pack(side="left", padx=4)
+        # --- Baris tombol aksi 1: validasi & prediksi ---
+        btns1 = ttk.LabelFrame(self, text="Validasi & Prediksi", padding=8)
+        btns1.grid(row=4, column=0, columnspan=3, sticky="we", pady=(8, 4))
 
+        ttk.Button(btns1, text="🎯 Uji pada Split Test",
+                   command=self.run_val).pack(side="left", padx=3)
+        ttk.Button(btns1, text="📊 Analisis results.csv",
+                   command=self.analyze_csv).pack(side="left", padx=3)
+        ttk.Button(btns1, text="🖼  Prediksi Gambar",
+                   command=self.predict_image).pack(side="left", padx=3)
+        ttk.Button(btns1, text="🎬 Prediksi Video",
+                   command=self.predict_video).pack(side="left", padx=3)
+        ttk.Button(btns1, text="🎥 Prediksi Kamera",
+                   command=self.predict_camera).pack(side="left", padx=3)
+
+        # --- Baris tombol aksi 2: import & lihat hasil training ---
+        btns2 = ttk.LabelFrame(self, text="Hasil Training (dari Drive/Colab)", padding=8)
+        btns2.grid(row=5, column=0, columnspan=3, sticky="we", pady=(4, 8))
+
+        ttk.Button(btns2, text="📥 Import Hasil Training (ZIP)",
+                   command=self.import_training_zip).pack(side="left", padx=3)
+        ttk.Button(btns2, text="📂 Lihat Hasil Training Terakhir",
+                   command=self.open_results_viewer).pack(side="left", padx=3)
+        ttk.Button(btns2, text="🌐 Buka Google Drive",
+                   command=lambda: webbrowser.open("https://drive.google.com/")
+                   ).pack(side="left", padx=3)
+
+        ttk.Label(btns2, text="(Import dari ZIP yang diunduh dari Colab)",
+                  foreground=tc("fg_muted"), font=("Consolas", 8)
+                  ).pack(side="left", padx=8)
+
+        # --- Log ---
         self.info = tk.Text(self, height=18, width=100, state="disabled",
                             relief="sunken", font=("Consolas", 9))
-        self.info.grid(row=5, column=0, columnspan=3, sticky="we", pady=8)
+        self.info.grid(row=6, column=0, columnspan=3, sticky="we", pady=8)
         self.columnconfigure(1, weight=1)
 
     def _log(self, m):
@@ -2156,22 +2198,42 @@ class EvalTab(ttk.Frame):
         if f:
             self.e_csv.delete(0, "end"); self.e_csv.insert(0, f)
 
+    # ---------- Validasi ----------
     def run_val(self):
         pt = self.e_pt.get().strip()
         if not pt or not Path(pt).exists():
             messagebox.showwarning("Kosong", "Pilih file .pt dulu.")
             return
-        if not self.project.root: return
-        yaml_path = self.project.root / "04_export" / "yolo_dataset" / "data.yaml"
-        if not yaml_path.exists():
+        if not self.project.root:
+            return
+        export_ds = self.project.root / "04_export" / "yolo_dataset"
+        if not export_ds.exists() or not (export_ds / "data.yaml").exists():
             messagebox.showwarning("Belum export", "Susun folder export dulu di tab 5.")
+            return
+
+        classes = self.project.data["classes"]
+        local_yaml = export_ds / "data_local.yaml"
+        yaml_lines = [
+            f"path: {str(export_ds).replace(chr(92), '/')}",
+            "train: train/images",
+            "val: val/images",
+            "test: test/images",
+            "",
+            f"nc: {len(classes)}",
+            "names:",
+        ] + [f"  - {c}" for c in classes]
+        try:
+            local_yaml.write_text("\n".join(yaml_lines), encoding="utf-8")
+        except Exception as e:
+            self._log(f"✗ Gagal menulis yaml temporary: {e}")
             return
 
         def worker():
             try:
                 from ultralytics import YOLO
+                self._log(f"Menggunakan data.yaml lokal: {local_yaml.name}")
                 self._log("Menjalankan validasi...")
-                m = YOLO(pt).val(data=str(yaml_path), split="test")
+                m = YOLO(pt).val(data=str(local_yaml), split="test")
                 self._log("")
                 self._log(f"  mAP@0.5       : {m.box.map50:.4f}")
                 self._log(f"  mAP@0.5:0.95  : {m.box.map:.4f}")
@@ -2181,9 +2243,15 @@ class EvalTab(ttk.Frame):
                 self._log("✗ ultralytics belum terinstall. pip install ultralytics")
             except Exception as e:
                 self._log(f"✗ Error: {e}")
+            finally:
+                try:
+                    local_yaml.unlink(missing_ok=True)
+                except Exception:
+                    pass
 
         threading.Thread(target=worker, daemon=True).start()
 
+    # ---------- Analisis CSV ----------
     def analyze_csv(self):
         p = self.e_csv.get().strip()
         if not p or not Path(p).exists():
@@ -2202,12 +2270,20 @@ class EvalTab(ttk.Frame):
         for k, v in last.items():
             self._log(f"  {k:35s} = {v}")
 
+    # ---------- Prediksi Gambar ----------
     def predict_image(self):
         pt = self.e_pt.get().strip()
         if not pt or not Path(pt).exists():
             messagebox.showwarning("Kosong", "Pilih file .pt dulu.")
             return
+        initial_dir = None
+        if self.project.root:
+            test_dir = self.project.root / "02_split" / "images" / "test"
+            if test_dir.exists():
+                initial_dir = str(test_dir)
         img = filedialog.askopenfilename(
+            title="Pilih gambar untuk diprediksi",
+            initialdir=initial_dir,
             filetypes=[("Gambar", "*.jpg *.jpeg *.png *.bmp"), ("All", "*.*")])
         if not img: return
         try:
@@ -2224,7 +2300,384 @@ class EvalTab(ttk.Frame):
         except Exception as e:
             self._log(f"✗ {e}")
 
+    # ---------- Prediksi Video ----------
+    def predict_video(self):
+        pt = self.e_pt.get().strip()
+        if not pt or not Path(pt).exists():
+            messagebox.showwarning("Kosong", "Pilih file .pt dulu.")
+            return
+        if not HAS_CV:
+            messagebox.showerror("OpenCV tidak ada", "pip install opencv-python")
+            return
+        vpath = filedialog.askopenfilename(
+            title="Pilih file video",
+            filetypes=[("Video", "*.mp4 *.avi *.mov *.mkv *.webm"), ("All", "*.*")])
+        if not vpath:
+            return
+        save_out = messagebox.askyesno(
+            "Simpan hasil?",
+            "Simpan video yang sudah dianotasi ke file?\n\n"
+            "Ya  → disimpan di folder yang sama dengan best.pt\n"
+            "Tidak → hanya ditampilkan")
+        out_path = None
+        if save_out:
+            out_path = Path(pt).parent / f"pred_{Path(vpath).stem}.mp4"
 
+        def worker():
+            try:
+                from ultralytics import YOLO
+                self._log(f"Memuat model: {Path(pt).name}")
+                model = YOLO(pt)
+                cap = cv2.VideoCapture(vpath)
+                if not cap.isOpened():
+                    self._log(f"✗ Tidak bisa buka video: {vpath}")
+                    return
+                fps = cap.get(cv2.CAP_PROP_FPS) or 25
+                w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                self._log(f"Video: {w}x{h} @ {fps:.1f}fps, {total} frame")
+                writer = None
+                if out_path:
+                    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                    writer = cv2.VideoWriter(str(out_path), fourcc, fps, (w, h))
+                    self._log(f"Hasil akan disimpan: {out_path}")
+                win = "Prediksi Video — Tekan Q untuk berhenti"
+                idx = 0
+                while True:
+                    ret, frame = cap.read()
+                    if not ret: break
+                    results = model(frame, verbose=False)
+                    ann = results[0].plot()
+                    if writer: writer.write(ann)
+                    idx += 1
+                    disp = ann.copy()
+                    cv2.putText(disp, f"Frame {idx}/{total}", (10, 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    cv2.imshow(win, disp)
+                    if cv2.waitKey(1) & 0xFF in (ord('q'), 27):
+                        self._log(f"⏹ Dihentikan di frame {idx}")
+                        break
+                cap.release()
+                if writer: writer.release()
+                cv2.destroyAllWindows()
+                self._log(f"✓ Selesai: {idx} frame diproses.")
+                if out_path and out_path.exists():
+                    self._log(f"✓ Hasil: {out_path}")
+            except ImportError:
+                self._log("✗ ultralytics belum terinstall. pip install ultralytics")
+            except Exception as e:
+                self._log(f"✗ Error: {e}")
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    # ---------- Prediksi Kamera ----------
+    def predict_camera(self):
+        pt = self.e_pt.get().strip()
+        if not pt or not Path(pt).exists():
+            messagebox.showwarning("Kosong", "Pilih file .pt dulu.")
+            return
+        if not HAS_CV:
+            messagebox.showerror("OpenCV tidak ada", "pip install opencv-python")
+            return
+        cam_idx = simpledialog.askinteger(
+            "Pilih Kamera",
+            "Index kamera:\n\n0 = webcam laptop\n1+ = webcam eksternal",
+            initialvalue=0, minvalue=0, maxvalue=5)
+        if cam_idx is None:
+            return
+
+        def worker():
+            try:
+                from ultralytics import YOLO
+                self._log(f"Memuat model: {Path(pt).name}")
+                model = YOLO(pt)
+                cap = cv2.VideoCapture(cam_idx)
+                if not cap.isOpened():
+                    self._log(f"✗ Tidak bisa buka kamera index {cam_idx}")
+                    return
+                self._log(f"🎥 Kamera {cam_idx} aktif. Tekan Q untuk berhenti.")
+                win = f"Prediksi Kamera {cam_idx} — Tekan Q untuk berhenti"
+                fps_timer = cv2.getTickCount()
+                frame_count = 0
+                fps_display = 0
+                while True:
+                    ret, frame = cap.read()
+                    if not ret: break
+                    results = model(frame, verbose=False)
+                    ann = results[0].plot()
+                    frame_count += 1
+                    if frame_count % 10 == 0:
+                        t = cv2.getTickCount()
+                        fps_display = 10 / ((t - fps_timer) / cv2.getTickFrequency())
+                        fps_timer = t
+                    cv2.putText(ann, f"FPS: {fps_display:.1f}", (10, 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.imshow(win, ann)
+                    if cv2.waitKey(1) & 0xFF in (ord('q'), 27):
+                        break
+                cap.release()
+                cv2.destroyAllWindows()
+                self._log(f"✓ Kamera {cam_idx} ditutup.")
+            except ImportError:
+                self._log("✗ ultralytics belum terinstall. pip install ultralytics")
+            except Exception as e:
+                self._log(f"✗ Error: {e}")
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    # ---------- Import hasil training (ZIP) ----------
+    def import_training_zip(self):
+        if not self.project.root:
+            messagebox.showwarning("Belum ada proyek", "Buat/muat proyek dulu.")
+            return
+        zpath = filedialog.askopenfilename(
+            title="Pilih file ZIP hasil training (train_results.zip)",
+            filetypes=[("ZIP", "*.zip"), ("All", "*.*")])
+        if not zpath:
+            return
+        try:
+            import zipfile
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            dst = self.project.root / "06_runs" / f"train_{ts}"
+            dst.mkdir(parents=True, exist_ok=True)
+            with zipfile.ZipFile(zpath) as z:
+                z.extractall(dst)
+            # Kalau ZIP punya wrapper folder "train/", pindahkan isinya ke atas
+            entries = list(dst.iterdir())
+            if len(entries) == 1 and entries[0].is_dir():
+                inner = entries[0]
+                for p in inner.iterdir():
+                    shutil.move(str(p), str(dst / p.name))
+                try: inner.rmdir()
+                except Exception: pass
+            self._log(f"✓ Diekstrak ke: {dst}")
+            # Buka viewer
+            TrainingResultsWindow(self, dst, self.project)
+        except Exception as e:
+            self._log(f"✗ Gagal import: {e}")
+            messagebox.showerror("Error", str(e))
+
+    # ---------- Buka viewer hasil training terakhir ----------
+    def open_results_viewer(self):
+        if not self.project.root:
+            return
+        runs_dir = self.project.root / "06_runs"
+        if not runs_dir.exists():
+            messagebox.showinfo("Kosong",
+                                "Belum ada hasil training di folder 06_runs/.\n\n"
+                                "Silakan import ZIP dari Colab terlebih dahulu.")
+            return
+        candidates = [p for p in runs_dir.iterdir()
+                      if p.is_dir() and p.name.startswith("train_")]
+        if not candidates:
+            candidates = [p for p in runs_dir.iterdir() if p.is_dir()]
+        if not candidates:
+            messagebox.showinfo("Kosong", "Belum ada hasil training.")
+            return
+        latest = sorted(candidates, key=lambda p: p.stat().st_mtime)[-1]
+        TrainingResultsWindow(self, latest, self.project)
+
+# ============================================================
+#  Viewer Hasil Training
+# ============================================================
+class TrainingResultsWindow(tk.Toplevel):
+    """Viewer untuk folder hasil training YOLO (dari runs/train)."""
+
+    def __init__(self, master, folder: Path, project: Project):
+        super().__init__(master)
+        self.folder = folder
+        self.project = project
+        self.title(f"Hasil Training — {folder.name}")
+        self.geometry("1200x800")
+        self.minsize(1000, 650)
+
+        self._images = []
+        self.pil_img = None
+        self.tk_img = None
+        self.scale = 1.0
+        self.offset = (0, 0)
+
+        self._build()
+        self._load()
+        self.after(100, self._apply_theme_to_self)
+
+    def _build(self):
+        # Top: ringkasan
+        top = ttk.LabelFrame(self, text="Ringkasan Training", padding=8)
+        top.pack(fill="x", padx=8, pady=(8, 4))
+        self.lbl_summary = ttk.Label(top, text="Memuat...",
+                                     justify="left", font=("Consolas", 10))
+        self.lbl_summary.pack(anchor="w")
+
+        # Middle: list + preview
+        mid = ttk.Frame(self, padding=8)
+        mid.pack(fill="both", expand=True)
+
+        left = ttk.LabelFrame(mid, text="Gambar Hasil", padding=4)
+        left.pack(side="left", fill="y", padx=(0, 6))
+
+        self.listbox = tk.Listbox(left, width=34, font=("Consolas", 9),
+                                  exportselection=False,
+                                  activestyle="none")
+        self.listbox.pack(fill="y", expand=True)
+        sb = ttk.Scrollbar(left, orient="vertical", command=self.listbox.yview)
+        sb.pack(side="right", fill="y")
+        self.listbox.configure(yscrollcommand=sb.set)
+        self.listbox.bind("<<ListboxSelect>>", self._on_select)
+
+        right = ttk.LabelFrame(mid, text="Preview", padding=4)
+        right.pack(side="right", fill="both", expand=True)
+
+        self.canvas = tk.Canvas(right, highlightthickness=0)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.bind("<Configure>", lambda e: self._redraw())
+
+        # Bottom: tombol
+        bot = ttk.Frame(self, padding=8)
+        bot.pack(fill="x")
+        ttk.Button(bot, text="📂 Buka Folder Hasil",
+                   command=self._open_folder).pack(side="left", padx=4)
+        ttk.Button(bot, text="📊 Analisis results.csv",
+                   command=self._analyze_csv).pack(side="left", padx=4)
+        ttk.Button(bot, text="🖼  Buka dengan Viewer Sistem",
+                   command=self._open_with_system).pack(side="left", padx=4)
+        ttk.Button(bot, text="Tutup",
+                   command=self.destroy).pack(side="right", padx=4)
+
+    def _apply_theme_to_self(self):
+        try:
+            restyle_tk_widgets(self)
+            remap_hardcoded_colors(self)
+        except Exception:
+            pass
+
+    def _load(self):
+        # Parse results.csv
+        csv_path = self.folder / "results.csv"
+        if csv_path.exists():
+            try:
+                with open(csv_path, newline="", encoding="utf-8") as f:
+                    rows = list(csv.DictReader(f))
+                if rows:
+                    last = rows[-1]
+                    lines = [
+                        f"Total epoch     : {len(rows)}",
+                        f"mAP@0.5         : {last.get('metrics/mAP50(B)', '-')}",
+                        f"mAP@0.5:0.95    : {last.get('metrics/mAP50-95(B)', '-')}",
+                        f"Precision       : {last.get('metrics/precision(B)', '-')}",
+                        f"Recall          : {last.get('metrics/recall(B)', '-')}",
+                    ]
+                    self.lbl_summary.config(text="\n".join(lines))
+            except Exception as e:
+                self.lbl_summary.config(text=f"Gagal baca results.csv: {e}")
+        else:
+            self.lbl_summary.config(text="(results.csv tidak ditemukan)")
+
+        # Kumpulkan gambar (prioritas dulu, lalu sisanya)
+        priority = [
+            "results.png",
+            "confusion_matrix.png",
+            "confusion_matrix_normalized.png",
+            "PR_curve.png",
+            "F1_curve.png",
+            "P_curve.png",
+            "R_curve.png",
+            "labels.jpg",
+            "labels_correlogram.jpg",
+        ]
+        images = []
+        for name in priority:
+            p = self.folder / name
+            if p.exists():
+                images.append(p)
+        for p in sorted(self.folder.glob("*")):
+            if p in images:
+                continue
+            if p.suffix.lower() in (".png", ".jpg", ".jpeg"):
+                images.append(p)
+
+        self._images = images
+        for p in images:
+            self.listbox.insert("end", p.name)
+        if images:
+            self.listbox.selection_set(0)
+            self._load_image(images[0])
+        else:
+            self.canvas.delete("all")
+            self.canvas.create_text(20, 20, anchor="nw",
+                                    text="Tidak ada gambar hasil di folder ini.",
+                                    fill=tc("fg_muted"))
+
+    def _on_select(self, event):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        self._load_image(self._images[sel[0]])
+
+    def _load_image(self, path: Path):
+        try:
+            self.pil_img = Image.open(path).convert("RGB")
+            self._redraw()
+        except Exception as e:
+            self.canvas.delete("all")
+            self.canvas.create_text(20, 20, anchor="nw",
+                                    text=f"Gagal memuat: {e}",
+                                    fill=tc("danger"))
+
+    def _redraw(self):
+        if self.pil_img is None:
+            return
+        cw = self.canvas.winfo_width()
+        ch = self.canvas.winfo_height()
+        if cw < 20 or ch < 20:
+            self.after(100, self._redraw)
+            return
+        W, H = self.pil_img.size
+        s = min(cw/W, ch/H, 1.0)
+        self.scale = s
+        nw, nh = max(1, int(W*s)), max(1, int(H*s))
+        self.offset = ((cw-nw)//2, (ch-nh)//2)
+        disp = self.pil_img.resize((nw, nh))
+        self.tk_img = ImageTk.PhotoImage(disp)
+        self.canvas.delete("all")
+        self.canvas.create_image(self.offset[0], self.offset[1],
+                                 anchor="nw", image=self.tk_img)
+
+    def _open_folder(self):
+        p = self.folder
+        if sys.platform.startswith("win"): os.startfile(p)
+        elif sys.platform == "darwin": os.system(f'open "{p}"')
+        else: os.system(f'xdg-open "{p}"')
+
+    def _open_with_system(self):
+        sel = self.listbox.curselection()
+        if not sel:
+            return
+        p = self._images[sel[0]]
+        if sys.platform.startswith("win"): os.startfile(p)
+        elif sys.platform == "darwin": os.system(f'open "{p}"')
+        else: os.system(f'xdg-open "{p}"')
+
+    def _analyze_csv(self):
+        csv_path = self.folder / "results.csv"
+        if not csv_path.exists():
+            messagebox.showwarning("Tidak ada", "results.csv tidak ditemukan.")
+            return
+        try:
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                rows = list(csv.DictReader(f))
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            return
+        if not rows:
+            return
+        last = rows[-1]
+        lines = [f"Total epoch: {len(rows)}", "", "Metrik epoch terakhir:"]
+        for k, v in last.items():
+            lines.append(f"  {k:35s} = {v}")
+        messagebox.showinfo("Analisis results.csv", "\n".join(lines))
+                
 # ============================================================
 #  Tab 8: Panduan
 # ============================================================
