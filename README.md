@@ -1,20 +1,17 @@
 # 🎯 YOLO Studio
 
 [![GitHub](https://img.shields.io/badge/GitHub-yogidm%2Fyolo--prep--studio-blue?logo=github)](https://github.com/yogidm/yolo-prep-studio)
+[![Release](https://img.shields.io/github/v/release/yogidm/yolo-prep-studio?color=green&label=release)](https://github.com/yogidm/yolo-prep-studio/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/yogidm/yolo-prep-studio/total?color=orange)](https://github.com/yogidm/yolo-prep-studio/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)](https://www.python.org/)
-[![Release](https://img.shields.io/github/v/release/yogidm/yolo-prep-studio?color=green&label=release)](https://github.com/yogidm/yolo-prep-studio/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)]()
 
-Aplikasi desktop untuk mempersiapkan dataset deteksi objek dan melatih model YOLO...
+Aplikasi desktop untuk **mempersiapkan dataset deteksi objek dan melatih model YOLO** — tanpa Roboflow, tanpa langganan cloud, atau pihak ketiga lainnya.
 
-## 🚀 Download
+Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, dan melatih model YOLO dari laptop sendiri sampai training di Google Colab pribadi.
 
-| Cara | Link |
-|------|------|
-| 📦 **Download ZIP rilis terbaru** | [**⬇️ Klik di sini**](https://github.com/yogidm/yolo-prep-studio/releases/latest) |
-| 📄 Lihat semua rilis | [Semua Releases](https://github.com/yogidm/yolo-prep-studio/releases) |
-| 🌐 Clone via Git | `git clone https://github.com/yogidm/yolo-prep-studio.git` |
----
+### [📥 Download Rilis Terbaru](https://github.com/yogidm/yolo-prep-studio/releases/latest) &nbsp;•&nbsp; [📖 Panduan](#-alur-penggunaan) &nbsp;•&nbsp; [🐛 Laporkan Bug](https://github.com/yogidm/yolo-prep-studio/issues)
 
 ## ✨ Fitur
 
