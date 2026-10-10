@@ -2677,23 +2677,45 @@ class TrainingResultsWindow(tk.Toplevel):
         for k, v in last.items():
             lines.append(f"  {k:35s} = {v}")
         messagebox.showinfo("Analisis results.csv", "\n".join(lines))
-                
+
 # ============================================================
 #  Tab 8: Panduan
 # ============================================================
 class GuideTab(ttk.Frame):
     def __init__(self, master, project: Project, app):
         super().__init__(master, padding=16)
+        self._texts = {}
+        self._font_size = self._load_font_size()
 
+        # ---- Toolbar atas ----
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(0, 6))
         ttk.Label(bar, text="Panduan Penggunaan",
                   font=("Segoe UI", 15, "bold")).pack(side="left")
+
         ttk.Button(bar, text="🖨 Buka sebagai file teks",
                    command=self._save_as_txt).pack(side="right", padx=4)
         ttk.Button(bar, text="📋 Salin ke clipboard",
                    command=self._copy_all).pack(side="right", padx=4)
 
+        # ---- Ukuran font ----
+        ttk.Button(bar, text="+", width=2,
+                   command=lambda: self._step_font(+1)).pack(side="right", padx=(0, 2))
+
+        self.v_font = tk.IntVar(value=self._font_size)
+        self.sp_font = ttk.Spinbox(
+            bar, from_=10, to=20, increment=1,
+            textvariable=self.v_font, width=4, font=("Consolas", 10))
+        self.sp_font.pack(side="right")
+        self.sp_font.bind("<Return>", lambda e: self._apply_font())
+        self.sp_font.bind("<FocusOut>", lambda e: self._apply_font())
+
+        ttk.Button(bar, text="−", width=2,
+                   command=lambda: self._step_font(-1)).pack(side="right", padx=(4, 0))
+
+        ttk.Label(bar, text="  🔤 Ukuran:").pack(side="right", padx=(8, 2))
+
+        # ---- Sub-tab notebook ----
         self.sub = ttk.Notebook(self)
         self.sub.pack(fill="both", expand=True)
 
@@ -2706,15 +2728,15 @@ class GuideTab(ttk.Frame):
             ("Split & Export",    GUIDE_SPLIT_EXPORT),
             ("Training Colab",    GUIDE_TRAINING),
             ("Evaluasi",          GUIDE_EVAL),
+            ("Prediksi Live",     GUIDE_PREDICT),
             ("Tips & FAQ",        GUIDE_TIPS_FAQ),
         ]
-        self._texts = {}
         for title, content in sections:
             frame = ttk.Frame(self.sub, padding=10)
             self.sub.add(frame, text=f"  {title}  ")
             txt = tk.Text(frame, wrap="word",
-                          font=("Consolas", 10), relief="flat",
-                          padx=8, pady=6)
+                          font=("Consolas", self._font_size),
+                          relief="flat", padx=8, pady=6)
             sb = ttk.Scrollbar(frame, orient="vertical", command=txt.yview)
             txt.configure(yscrollcommand=sb.set)
             txt.pack(side="left", fill="both", expand=True)
@@ -2723,6 +2745,56 @@ class GuideTab(ttk.Frame):
             txt.configure(state="disabled")
             self._texts[title] = txt
 
+    # ---------- Font size ----------
+    def _config_path(self) -> Path:
+        return Path.home() / ".yolo_studio_config.json"
+
+    def _load_font_size(self) -> int:
+        p = self._config_path()
+        if p.exists():
+            try:
+                cfg = json.loads(p.read_text(encoding="utf-8"))
+                size = int(cfg.get("guide_font_size", 10))
+                return max(10, min(20, size))
+            except Exception:
+                pass
+        return 10
+
+    def _save_font_size(self, size: int):
+        p = self._config_path()
+        try:
+            cfg = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        except Exception:
+            cfg = {}
+        cfg["guide_font_size"] = size
+        try:
+            p.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _step_font(self, delta: int):
+        cur = self.v_font.get()
+        new = max(10, min(20, cur + delta))
+        self.v_font.set(new)
+        self._apply_font()
+
+    def _apply_font(self):
+        try:
+            size = int(self.v_font.get())
+        except (tk.TclError, ValueError):
+            return
+        size = max(10, min(20, size))
+        self.v_font.set(size)
+        self._font_size = size
+
+        # Update font semua text widget
+        for txt in self._texts.values():
+            txt.configure(font=("Consolas", size))
+
+        # Simpan preferensi
+        self._save_font_size(size)
+
+    # ---------- Aksi clipboard / simpan ----------
     def _copy_all(self):
         parts = []
         for title, txt in self._texts.items():
@@ -2748,7 +2820,6 @@ class GuideTab(ttk.Frame):
             parts.append("\n\n")
         Path(f).write_text("".join(parts), encoding="utf-8")
         messagebox.showinfo("Tersimpan", f"Panduan disimpan:\n{f}")
-
 
 # ============================================================
 #  Konten Panduan
@@ -3109,63 +3180,228 @@ Klik "🧪 Validasi Label" untuk cek format YOLO:
   • class_id sesuai jumlah kelas
 """
 
+GUIDE_PREDICT = """PREDIKSI LIVE — GAMBAR, VIDEO, KAMERA
+=======================================
+
+Tab Evaluasi menyediakan 3 mode prediksi menggunakan model .pt
+yang sudah dilatih. Semua berjalan real-time tanpa internet.
+
+
+── PERSIAPAN ──────────────────────────────────────────
+
+  1. Pastikan ultralytics terinstall:
+       pip install ultralytics
+
+  2. Punya file model .pt (best.pt dari Colab)
+     Simpan di folder 05_models/
+
+  3. Buka tab 7. Evaluasi
+  4. Browse file .pt di kolom "File model (.pt)"
+
+
+── PREDIKSI GAMBAR ────────────────────────────────────
+
+Untuk uji satu gambar tunggal.
+
+  1. Klik "🖼 Prediksi Gambar"
+  2. Dialog langsung buka di folder test proyek
+     (kalau folder belum ada, buka di folder sistem)
+  3. Pilih gambar apapun (jpg/png/bmp)
+  4. Hasil muncul di jendela baru + disimpan otomatis
+     dengan nama pred_<nama_gambar>.jpg
+
+Cocok untuk: verifikasi cepat, demo skripsi, uji sampel random.
+
+
+── PREDIKSI VIDEO ─────────────────────────────────────
+
+Untuk memproses seluruh frame video.
+
+  1. Klik "🎬 Prediksi Video"
+  2. Pilih file video (.mp4/.avi/.mov/.mkv/.webm)
+  3. Aplikasi tanya: simpan hasil?
+       Ya     → buat file pred_<nama>.mp4 di folder 05_models/
+       Tidak  → hanya tampil di jendela
+  4. Preview muncul, setiap frame dideteksi
+  5. Frame counter muncul di kiri atas
+  6. Tekan Q atau ESC untuk berhenti lebih awal
+
+Cocok untuk: rekaman CCTV, drone, HP, dashcam.
+Estimasi kecepatan: 5–30 FPS tergantung model & hardware.
+
+
+── PREDIKSI KAMERA ────────────────────────────────────
+
+Untuk deteksi real-time dari webcam.
+
+  1. Klik "🎥 Prediksi Kamera"
+  2. Dialog tanya index kamera:
+       0 = webcam laptop (biasanya)
+       1+ = webcam eksternal / USB
+  3. Jendela kamera langsung muncul
+  4. FPS counter tampil di kiri atas
+  5. Tekan Q atau ESC untuk berhenti
+
+Cocok untuk: demo skripsi, uji performa real-time, monitoring.
+
+
+── TIPS PERFORMA ──────────────────────────────────────
+
+Kalau lambat, coba:
+
+  1. Pakai model nano
+       yolov8n.pt (paling cepat, akurasi sedang)
+       yolov8s.pt (seimbang)
+       yolov8m.pt+ (lebih akurat, lebih lambat)
+
+  2. Turunkan resolusi inference
+     Edit kode, cari: model(frame, verbose=False)
+     Ganti jadi:     model(frame, verbose=False, imgsz=416)
+     Lebih cepat 2-3×, akurasi turun sedikit.
+
+  3. Cek GPU
+     Kalau punya GPU NVIDIA + CUDA, ultralytics otomatis pakai GPU.
+     Cek dengan: python -c "import torch; print(torch.cuda.is_available())"
+
+  4. Tutup aplikasi lain
+     Zoom, Teams, browser banyak tab → rebut resource.
+
+
+── FORMAT OUTPUT ──────────────────────────────────────
+
+Semua hasil prediksi disimpan di folder yang sama dengan best.pt
+(biasanya 05_models/):
+
+  • pred_<nama_gambar>.jpg  → hasil prediksi gambar
+  • pred_<nama_video>.mp4   → hasil prediksi video
+
+Warna kotak di prediksi mengikuti warna kelas (sama dengan
+palet di anotator) — memudahkan identifikasi.
+
+
+── BEDA DENGAN AUTO-SUGGEST ───────────────────────────
+
+Auto-Suggest (di Anotator):
+  • Pakai model COCO pretrained (bukan model Anda)
+  • Untuk mempercepat anotasi
+  • Hanya mengenali 80 kelas umum
+
+Prediksi (di tab Evaluasi):
+  • Pakai model .pt yang sudah ANDA latih sendiri
+  • Untuk uji performa model
+  • Mengenali kelas custom Anda
+"""
 
 GUIDE_TRAINING = """TRAINING DI GOOGLE COLAB
 =========================
 
 ── KENAPA COLAB ───────────────────────────────────────
 
-  ✓ Gratis
-  ✓ GPU T4
-  ✓ Tidak perlu install CUDA
+  ✓ Gratis (akun Google standar)
+  ✓ GPU T4 (jauh lebih cepat dari CPU)
+  ✓ Tidak perlu install CUDA di laptop
   ✓ 12 jam per sesi
 
 
 ── PERSIAPAN ──────────────────────────────────────────
 
-  1. Pastikan folder yolo_dataset/ sudah di Drive
+  1. Pastikan folder yolo_dataset/ sudah di Drive:
+       MyDrive/yolo_projects/<nama_proyek>/yolo_dataset/
+
   2. Buka tab "6. Training":
        • Pilih versi YOLO
        • Pilih model dasar
        • Atur hyperparameter
        • Klik "📓 Generate Notebook"
+
   3. Buka https://colab.research.google.com
-  4. File → Upload notebook
-  5. Runtime → Change runtime type → T4 GPU
-  6. Jalankan cell dari atas ke bawah
+  4. File → Upload notebook → pilih .ipynb yang baru dibuat
+  5. Runtime → Change runtime type → T4 GPU → Save
+  6. Jalankan cell dari atas ke bawah (Shift+Enter per cell)
+
+
+── NOTEBOOK COLAb OTOMATIS ────────────────────────────
+
+Notebook yang digenerate berisi 6 cell:
+
+  1. Install ultralytics
+  2. Mount Google Drive
+  3. Set path dataset
+  4. Training
+  5. Validasi akhir
+  6. Download best.pt
+  7. Download train_results.zip ← BARU!
+
+Cell 7 otomatis meng-zip folder runs/train/ dan mengunduh:
+  • results.csv
+  • results.png
+  • confusion_matrix.png
+  • PR curve, F1 curve, dll
+
+Setelah diunduh, import ZIP ke aplikasi via:
+  Tab 7. Evaluasi → 📥 Import Hasil Training (ZIP)
 
 
 ── PEMILIHAN VERSI & MODEL ────────────────────────────
 
 Versi:
-  YOLOv5    : klasik
-  YOLOv8    : stabil
+  YOLOv5    : klasik, banyak tutorial
+  YOLOv8    : stabil, dokumentasi terbaik
   YOLOv9    : akurasi lebih tinggi
   YOLOv10   : inference cepat
-  YOLO11    : paling baru
+  YOLO11    : paling baru (2024)
 
-Model:
-  n  : tercepat
-  s  : seimbang (rekomendasi awal)
-  m  : akurasi bagus
-  l  : akurasi tinggi
-  x  : paling akurat
+Model (n = nano, x = extra large):
+  n  : tercepat, akurasi rendah, untuk prototipe
+  s  : seimbang, rekomendasi awal
+  m  : akurasi bagus, untuk dataset sedang
+  l  : akurasi tinggi, butuh GPU besar
+  x  : paling akurat, paling lambat
+
+Rekomendasi awal: YOLOv8n (cepat) atau YOLOv8s (seimbang).
 
 
 ── HYPERPARAMETER ─────────────────────────────────────
 
-Epochs    : 100 (default)
-Imgsz     : 640 (default)
-Batch     : 16 (default)
-Patience  : 20 (early stopping)
-Optimizer : auto
+Epochs    : 100 (default). Dataset kecil: 50–100.
+Imgsz     : 640 (default). Objek kecil: 1024. Cepat: 416.
+Batch     : 16 (default). OOM? turunkan ke 8 atau 4.
+Patience  : 20 (early stopping otomatis).
+Optimizer : auto (biarkan).
+
+
+── MEMANTAU TRAINING ──────────────────────────────────
+
+Selama training, notebook akan menampilkan progress:
+  Epoch    GPU_mem  box_loss  cls_loss  dfl_loss  Instances  Size
+  1/100    2.5G     1.234     0.567     0.890     12         640
+
+Yang perlu diperhatikan:
+  • box_loss, cls_loss TURUN → model belajar
+  • Kalau loss naik lagi → overfitting
+  • mAP50 muncul di akhir tiap epoch
+
+
+── SETELAH TRAINING SELESAI ───────────────────────────
+
+Notebook otomatis download 2 file:
+
+  1. best.pt             → model terbaik
+     Simpan di folder 05_models/ proyek Anda.
+
+  2. train_results.zip   → semua hasil training
+     Import ke aplikasi via tab 7 → Import Hasil Training.
+
+Untuk bandingkan beberapa eksperimen (v8 vs v9 vs v10):
+  Latih satu per satu, simpan ZIP dengan nama berbeda,
+  import semuanya, lalu bandingkan mAP di viewer.
 
 
 ── MASALAH UMUM ───────────────────────────────────────
 
-Colab "Runtime disconnected":
+Colab error "Runtime disconnected":
   • Batas gratis 12 jam, atau idle 90 menit
-  • Hasil training tersimpan di Drive: runs/train/weights/last.pt
+  • Hasil sementara tersimpan di Drive: runs/train/weights/last.pt
 
 CUDA out of memory:
   • Turunkan batch size (16 → 8 → 4)
@@ -3175,11 +3411,27 @@ CUDA out of memory:
 Dataset tidak ditemukan:
   • Cek path di cell "Mount Google Drive"
   • Cek kapitalisasi nama folder (case-sensitive)
+
+train_results.zip tidak muncul:
+  • Pastikan cell terakhir dijalankan (## 6. Download semua hasil)
+  • Kalau tidak terunduh, ambil manual dari Drive:
+    MyDrive/yolo_projects/<nama>/runs/train/
 """
 
 
 GUIDE_EVAL = """EVALUASI MODEL
 ===============
+
+Tab Evaluasi sekarang punya 7 fitur utama:
+
+  1. Uji pada Split Test       — hitung mAP, precision, recall
+  2. Analisis results.csv      — lihat metrik per epoch
+  3. Prediksi Gambar           — uji 1 gambar tunggal
+  4. Prediksi Video            — proses seluruh frame video
+  5. Prediksi Kamera           — real-time webcam + FPS counter
+  6. Import Hasil Training ZIP — ekstrak grafik dari Colab
+  7. Lihat Hasil Training      — buka eksperimen sebelumnya
+
 
 ── METRIK YANG DILAPORKAN ─────────────────────────────
 
@@ -3192,19 +3444,104 @@ mAP@0.5:0.95
 
 Precision
   Dari semua prediksi, berapa persen benar?
-  Tinggi = sedikit false positive.
 
 Recall
   Dari semua objek asli, berapa persen terdeteksi?
-  Tinggi = sedikit objek terlewat.
 
 
-── CARA PAKAI DI APLIKASI ────────────────────────────
+── UJI PADA SPLIT TEST ────────────────────────────────
 
-  1. Unduh best.pt dari Colab → simpan di 05_models/
-  2. Buka tab "7. Evaluasi"
-  3. Browse file .pt → pilih best.pt
-  4. Klik "🎯 Uji pada Split Test"
+  1. Browse file .pt → pilih best.pt hasil Colab
+  2. Klik "🎯 Uji pada Split Test"
+  3. Aplikasi otomatis bikin data.yaml lokal
+  4. Tunggu → hasil mAP muncul di log
+
+PENTING: folder test/images/ harus ada. Kalau belum, jalankan
+Split dulu di tab 4.
+
+
+── ANALISIS RESULTS.CSV ───────────────────────────────
+
+Untuk detail per epoch:
+  1. Ambil results.csv dari Colab (folder runs/train/)
+  2. Browse ke file tersebut
+  3. Klik "📊 Analisis results.csv"
+
+Aplikasi menampilkan metrik epoch terakhir + total epoch.
+
+
+── PREDIKSI GAMBAR ────────────────────────────────────
+
+  1. Browse best.pt
+  2. Klik "🖼 Prediksi Gambar"
+  3. Dialog langsung buka di folder test proyek
+  4. Pilih gambar (bisa juga gambar baru di luar dataset)
+  5. Hasil muncul di jendela + tersimpan sebagai pred_*.jpg
+
+Hasil disimpan di folder yang sama dengan best.pt.
+
+
+── PREDIKSI VIDEO ─────────────────────────────────────
+
+  1. Browse best.pt
+  2. Klik "🎬 Prediksi Video"
+  3. Pilih file video (.mp4/.avi/.mov)
+  4. Aplikasi tanya: simpan hasil?
+       Ya     → tersimpan sebagai pred_<nama>.mp4
+       Tidak  → hanya ditampilkan
+  5. Jendela preview muncul, setiap frame dideteksi
+  6. Tekan Q atau ESC untuk berhenti
+
+Progress frame ditampilkan di atas video.
+Cocok untuk: uji rekaman CCTV, drone, HP.
+
+
+── PREDIKSI KAMERA ────────────────────────────────────
+
+  1. Browse best.pt
+  2. Klik "🎥 Prediksi Kamera"
+  3. Dialog tanya index kamera:
+       0 = webcam laptop
+       1+ = webcam eksternal
+  4. Jendela kamera langsung muncul
+  5. FPS counter tampil di kiri atas
+  6. Tekan Q atau ESC untuk berhenti
+
+Untuk performa terbaik:
+  • Gunakan model yolov8n.pt (nano)
+  • Tutup aplikasi yang pakai kamera (Zoom, Teams)
+  • Kalau lambat, ubah imgsz ke 416 di kode
+
+
+── IMPORT HASIL TRAINING (ZIP) ────────────────────────
+
+Notebook Colab otomatis mengunduh train_results.zip berisi:
+  • results.csv         → metrik per epoch
+  • results.png         → grafik loss & mAP
+  • confusion_matrix.png
+  • PR_curve.png, F1_curve.png
+  • labels.jpg          → distribusi label
+  • train_batch*.jpg    → contoh batch training
+  • val_batch*.jpg      → contoh validasi
+
+Cara import:
+  1. Klik "📥 Import Hasil Training (ZIP)"
+  2. Pilih train_results.zip
+  3. Aplikasi ekstrak ke 06_runs/train_<timestamp>/
+  4. Viewer otomatis terbuka menampilkan:
+       - Ringkasan: total epoch, mAP50, mAP50-95, precision, recall
+       - Daftar gambar di kiri (klik untuk preview)
+       - Preview besar di kanan
+       - Tombol analisis CSV, buka folder, buka dengan viewer sistem
+
+Setiap import disimpan dengan timestamp berbeda, jadi Anda
+bisa bandingkan beberapa eksperimen.
+
+
+── LIHAT HASIL TRAINING TERAKHIR ──────────────────────
+
+Klik "📂 Lihat Hasil Training Terakhir" → buka kembali eksperimen
+terbaru tanpa perlu import ulang. Berguna untuk review cepat.
 
 
 ── INTERPRETASI HASIL ─────────────────────────────────
@@ -3217,12 +3554,22 @@ mAP > 0.8    →  Sangat bagus
 Overfitting (train bagus, val/test jelek):
   • Tambah augmentasi
   • Tambah data
-  • Kurangi kompleksitas model
+  • Kurangi kompleksitas model (nano/small)
 
 Underfitting (semua jelek):
-  • Training lebih lama
-  • Model lebih besar
-  • Cek anotasi
+  • Training lebih lama (epochs)
+  • Model lebih besar (small → medium)
+  • Cek anotasi — mungkin banyak yang salah
+
+
+── TIPS MENINGKATKAN mAP ──────────────────────────────
+
+1. Cek anotasi konsistensi — kotak harus rapat & konsisten
+2. Tambah variasi data — sudut, jarak, cahaya berbeda
+3. Seimbangkan distribusi kelas — hindari imbalance ekstrem
+4. Latih lebih lama (epochs 200–300)
+5. Coba model lebih besar (n → s → m)
+6. Periksa data leakage — gambar train jangan masuk test
 """
 
 
