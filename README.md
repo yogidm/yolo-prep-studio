@@ -4,6 +4,10 @@ Aplikasi desktop untuk **mempersiapkan dataset deteksi objek dan melatih model Y
 
 Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, dan melatih model YOLO dari laptop sendiri sampai training di Google Colab.
 
+[![GitHub](https://img.shields.io/badge/GitHub-yogidm%2Fyolo--prep--studio-blue?logo=github)](https://github.com/yogidm/yolo-prep-studio)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)](https://www.python.org/)
+
 ---
 
 ## ✨ Fitur
@@ -18,11 +22,8 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 | 🔀 **Split Fleksibel** | Rasio numerik (persen) dengan live-count dan preset |
 | 📦 **Export** | Folder `yolo_dataset/` siap-upload ke Google Drive |
 | 📓 **Notebook Generator** | `.ipynb` otomatis sesuai versi YOLO (v5/v8/v9/v10/v11) |
-| 🎯 **Evaluasi** | Uji `.pt` hasil Colab, hitung mAP / precision / recall |
-| 📚 **Panduan Bawaan** | 9 sub-tab referensi lengkap langsung di dalam aplikasi |
-
----
-
+| 🎯 **Evaluasi Lengkap** | Uji mAP/precision/recall, prediksi gambar/video/kamera real-time |
+| 📥 **Import Hasil Training** | ZIP dari Colab → viewer metrik + grafik di dalam aplikasi |
 | 📚 **Panduan Bawaan** | 9 sub-tab referensi lengkap langsung di dalam aplikasi |
 
 ---
@@ -40,14 +41,13 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 
 ---
 
-
 ## 🚀 Instalasi
 
 **Prasyarat:** Python 3.9+ dan pip.
 
 ```bash
-git clone https://github.com/<username>/yolo-studio.git
-cd yolo-studio
+git clone https://github.com/yogidm/yolo-prep-studio.git
+cd yolo-prep-studio
 
 # Buat virtual environment (opsional tapi disarankan)
 python -m venv .venv
@@ -86,7 +86,7 @@ Atau lewat script bantu:
 │  4. Split    →  atur rasio train/val/test           │
 │  5. Export   →  susun folder + data.yaml            │
 │  6. Training →  generate notebook, jalankan Colab   │
-│  7. Evaluasi →  muat best.pt, uji split test        │
+│  7. Evaluasi →  uji best.pt + import hasil training │
 │  8. Panduan  →  referensi lengkap di dalam aplikasi │
 └─────────────────────────────────────────────────────┘
 ```
@@ -105,9 +105,16 @@ Atau lewat script bantu:
 
 5. **Export** — klik *Susun Folder Export + data.yaml* → folder `04_export/yolo_dataset/` siap. Upload folder tersebut ke Google Drive di `MyDrive/yolo_projects/<nama_proyek>/yolo_dataset/`.
 
-6. **Training** — pilih versi YOLO (v5/v8/v9/v10/v11) dan model (n/s/m/l/x), atur hyperparameter, klik *Generate Notebook*. Upload `.ipynb` ke [colab.research.google.com](https://colab.research.google.com), ganti runtime ke T4 GPU, jalankan cell. `best.pt` otomatis terunduh di akhir.
+6. **Training** — pilih versi YOLO (v5/v8/v9/v10/v11) dan model (n/s/m/l/x), atur hyperparameter, klik *Generate Notebook*. Upload `.ipynb` ke [colab.research.google.com](https://colab.research.google.com), ganti runtime ke T4 GPU, jalankan cell. `best.pt` + `train_results.zip` otomatis terunduh di akhir.
 
-7. **Evaluasi** — letakkan `best.pt` di `05_models/`, muat di tab Evaluasi, klik *Uji pada Split Test* untuk mAP, precision, recall.
+7. **Evaluasi** — muat `best.pt`, lalu:
+   - **🎯 Uji pada Split Test** → hitung mAP, precision, recall
+   - **📊 Analisis results.csv** → metrik per epoch
+   - **🖼 Prediksi Gambar** → uji gambar tunggal
+   - **🎬 Prediksi Video** → prediksi seluruh frame video
+   - **🎥 Prediksi Kamera** → real-time webcam dengan FPS counter
+   - **📥 Import Hasil Training (ZIP)** → ekstrak + viewer grafik dari Colab
+   - **📂 Lihat Hasil Training Terakhir** → buka kembali eksperimen sebelumnya
 
 8. **Panduan** — referensi lengkap 9 sub-tab (Alur, Akuisisi, Anotasi Manual, Semi-Auto, Shortcut, Split & Export, Training, Evaluasi, Tips & FAQ). Bisa disalin ke clipboard atau disimpan sebagai file teks.
 
@@ -164,7 +171,8 @@ Setelah membuat proyek, folder yang terbentuk:
 ├── 04_export/
 │   └── yolo_dataset/          # folder siap upload ke Drive
 ├── 05_models/                 # best.pt hasil Colab
-├── 06_runs/                   # log training lokal
+├── 06_runs/                   # hasil training (import dari Colab)
+│   └── train_<timestamp>/     # satu folder per eksperimen
 ├── notebooks/                 # .ipynb yang digenerate
 └── configs/                   # data.yaml, dll
 ```
@@ -174,11 +182,11 @@ Setelah membuat proyek, folder yang terbentuk:
 ## ⚙️ Dependensi
 
 **Wajib** (`requirements.txt`):
-- `opencv-python` — capture webcam & ekstrak frame
+- `opencv-python` — capture webcam, ekstrak frame, prediksi video/kamera
 - `Pillow` — anotasi & preview gambar
 
 **Opsional** (`requirements-full.txt`):
-- `ultralytics` — untuk auto-suggest bbox COCO dan evaluasi model `.pt`
+- `ultralytics` — untuk auto-suggest bbox COCO, evaluasi `.pt`, prediksi video/kamera
 
 ---
 
@@ -196,8 +204,14 @@ Turunkan batch size (16 → 8 → 4) atau imgsz (640 → 416) di tab Training.
 **Split menghasilkan 0 gambar di val/test**
 Dataset terlalu kecil. Kumpulkan minimal 10-20 gambar teranotasi dulu.
 
-**Warna tema tidak konsisten**
-Tutup & buka ulang aplikasi. Kalau masih ada masalah, buka issue dengan screenshot.
+**Uji pada Split Test error "images not found, missing path"**
+Bug lama — sudah diperbaiki di v1.1.0. Update ke versi terbaru.
+
+**Prediksi video/kamera lambat**
+Gunakan model `yolov8n.pt` (nano). Turunkan `imgsz` ke 416 untuk performa lebih tinggi.
+
+**Hasil training tidak muncul di tab Evaluasi**
+Import dulu via **📥 Import Hasil Training (ZIP)** — pilih `train_results.zip` yang diunduh dari Colab.
 
 ---
 
@@ -225,8 +239,8 @@ Pull request dan issue sangat diterima. Untuk perubahan besar, silakan buka issu
 
 ```bash
 # Fork repo di GitHub, lalu:
-git clone https://github.com/<username-anda>/yolo-studio.git
-cd yolo-studio
+git clone https://github.com/<username-anda>/yolo-prep-studio.git
+cd yolo-prep-studio
 git checkout -b feat/nama-fitur-anda
 
 # ... edit file ...
