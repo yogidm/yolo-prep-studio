@@ -1,0 +1,50 @@
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          if [ -f CHANGELOG.md ]; then
+            awk -v ver="$VERSION" '
+              $0 ~ "^## \\[" ver "\\]" {flag=1; next}
+              flag && /^## \[/ {exit}
+              flag {print}
+            ' CHANGELOG.md > /tmp/release_notes.md
+          fi
+          if [ ! -s /tmp/release_notes.md ]; then
+            echo "Release $VERSION" > /tmp/release_notes.md
+            echo "" >> /tmp/release_notes.md
+            echo "Lihat commit terbaru untuk detail perubahan." >> /tmp/release_notes.md
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "YOLO Studio ${{ steps.version.outputs.VERSION }}"
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
