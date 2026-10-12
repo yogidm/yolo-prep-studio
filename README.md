@@ -33,16 +33,16 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 
 ## 📸 Tangkapan Layar
 
-### 1. Tab Proyek — Setup awal proyek & kelas
+### Tab Proyek — Setup awal proyek & kelas
 ![Tab Proyek](docs/screenshots/01-proyek.png)
 
-### 2. Tab Akuisisi — Ekstrak frame dari video atau capture webcam
+### Tab Akuisisi — Ekstrak frame dari video atau capture webcam
 ![Tab Akuisisi](docs/screenshots/02-akuisisi.png)
 
-### 3. Tab Anotasi — Bounding box dengan warna tetap per kelas
+### Tab Anotasi — Bounding box dengan warna tetap per kelas
 ![Tab Anotasi](docs/screenshots/03-anotasi.png)
 
-### 4. Tab Evaluasi — Validasi, prediksi, dan import hasil training
+### Tab Evaluasi — Validasi, prediksi, dan import hasil training
 ![Tab Evaluasi](docs/screenshots/07-evaluasi.png)
 
 *Uji model dengan **🎯 Uji pada Split Test**, analisis per-epoch dengan **📊 Analisis results.csv**, uji visual dengan **🖼 Prediksi Gambar / 🎬 Prediksi Video / 🎥 Prediksi Kamera**, dan import hasil Colab dengan **📥 Import Hasil Training (ZIP)**.*
@@ -86,6 +86,33 @@ Setelah training selesai di Colab, notebook otomatis menghasilkan `train_results
 | Precision | 0.55091 |
 | Recall | 0.42328 |
 
+---
+
+## 📚 Panduan Bawaan
+
+![Tab Panduan](docs/screenshots/08-panduan.png)
+
+*Panduan dalam aplikasi dengan 10 sub-tab. Ukuran font bisa diatur 10–20 pt.*
+
+Aplikasi dilengkapi **10 sub-tab panduan** di dalam aplikasi (tab 8):
+
+| Sub-Tab | Isi |
+|---------|-----|
+| Alur Singkat | Diagram 8 langkah + fitur unggulan + alur detail per tab |
+| Akuisisi Data | Video, webcam, strategi pengambilan gambar |
+| Anotasi Manual | Drag bbox, aturan kotak yang baik, kasus khusus |
+| Anotasi Semi-Auto | 80 kelas COCO, efektivitas auto-suggest |
+| Shortcut | Semua kombinasi keyboard + referensi cepat |
+| Split & Export | Prinsip split, rekomendasi jumlah, validasi label |
+| Training Colab | Versi YOLO, hyperparameter, troubleshooting |
+| Evaluasi | 7 fitur evaluasi + interpretasi hasil |
+| Prediksi Live | Gambar, video, kamera real-time, tips performa |
+| Tips & FAQ | 12 pertanyaan umum + sumber belajar |
+
+**Fitur panduan**:
+- 🔤 Kontrol ukuran font (10–20 pt) dengan auto-save
+- 📋 Salin seluruh panduan ke clipboard
+- 🖨 Simpan sebagai file teks/markdown
 ---
 
 ## 🚀 Instalasi

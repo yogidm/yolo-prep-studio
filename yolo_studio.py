@@ -421,6 +421,24 @@ YOLO_VERSIONS = {
                "import":  "import torch",
                "models":  ["yolov5s.pt", "yolov5m.pt", "yolov5l.pt", "yolov5x.pt"],
                "api":     "yolov5"},
+    "YOLO26": {
+        "install": "pip install -q ultralytics",
+        "import":  "from ultralytics import YOLO",
+        "models":  ["yolo26n.pt", "yolo26s.pt", "yolo26m.pt", "yolo26l.pt", "yolo26x.pt"],
+        "api":     "ultralytics"
+    },
+    "YOLOv12": {
+        "install": "pip install -q ultralytics",
+        "import":  "from ultralytics import YOLO",
+        "models":  ["yolo12n.pt", "yolo12s.pt", "yolo12m.pt", "yolo12l.pt", "yolo12x.pt"],
+        "api":     "ultralytics"
+    },
+    "YOLOv13": {
+        "install": "pip install -q ultralytics",
+        "import":  "from ultralytics import YOLO",
+        "models":  ["yolov13n.pt", "yolov13s.pt", "yolov13l.pt", "yolov13x.pt"],
+        "api":     "ultralytics"
+    },
 }
 
 PROJECT_DIRS = [
@@ -2827,45 +2845,133 @@ class GuideTab(ttk.Frame):
 GUIDE_FLOW = """ALUR 8 LANGKAH — DARI NOL SAMPAI MODEL JADI
 =============================================
 
-Aplikasi ini membantu Anda mempersiapkan dataset deteksi objek dan
-melatih model YOLO melalui Google Colab. Semua proses dari pengambilan
-data, anotasi, split, hingga penyiapan training dapat dilakukan dari
-dalam aplikasi ini. Tidak memerlukan layanan pihak ketiga seperti
-Roboflow.
+Aplikasi ini membantu Anda mempersiapkan dataset deteksi objek
+dan melatih model YOLO melalui Google Colab. Semua proses dari
+pengambilan data, anotasi, split, hingga penyiapan training
+dapat dilakukan dari dalam aplikasi ini. Tidak memerlukan
+layanan pihak ketiga seperti Roboflow.
 
 
-  ┌─────────────────────────────────────────────┐
-  │  1. PROYEK     →  buat proyek & kelas       │
-  │  2. AKUISISI   →  webcam / video            │
-  │  3. ANOTASI    →  gambar bbox (manual/auto) │
-  │  4. SPLIT      →  bagi train/val/test       │
-  │  5. EXPORT     →  siapkan folder Drive      │
-  │  6. TRAINING   →  jalankan di Colab         │
-  │  7. EVALUASI   →  uji hasil best.pt         │
-  │  8. PANDUAN    →  referensi (di sini)       │
-  └─────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────┐
+  │  1. PROYEK     →  buat proyek & kelas           │
+  │  2. AKUISISI   →  webcam / video                │
+  │  3. ANOTASI    →  gambar bbox (manual/auto)     │
+  │  4. SPLIT      →  bagi train/val/test           │
+  │  5. EXPORT     →  siapkan folder Drive          │
+  │  6. TRAINING   →  jalankan di Colab             │
+  │  7. EVALUASI   →  uji best.pt + import hasil    │
+  │  8. PANDUAN    →  referensi (di sini)           │
+  └─────────────────────────────────────────────────┘
 
 
 Estimasi waktu (dataset kecil, 3 kelas, ~300 gambar):
-  • Akuisisi        : 30–60 menit
-  • Anotasi manual  : 3–6 jam
-  • Anotasi semi-auto: 1–2 jam  (jika kelas umum COCO)
-  • Split + Export  : 5 menit
-  • Training Colab  : 30–60 menit
-  • Evaluasi        : 10 menit
+  • Akuisisi           : 30–60 menit
+  • Anotasi manual     : 3–6 jam
+  • Anotasi semi-auto  : 1–2 jam  (jika kelas umum COCO)
+  • Split + Export     : 5 menit
+  • Training Colab     : 30–60 menit
+  • Evaluasi + Prediksi: 10–30 menit
   ─────────────────────────────
-  Total             : ~5–8 jam (bisa dicicil)
+  Total                : ~5–8 jam (bisa dicicil)
 
 
 Prinsip penting:
-  1. Kualitas anotasi > kuantitas. Kotak yang pas lebih berharga
-     daripada banyak kotak yang asal.
-  2. Variasi gambar > banyak gambar mirip. Model belajar dari
-     perbedaan sudut, jarak, cahaya, latar.
-  3. Split dilakukan SETELAH anotasi selesai. Aplikasi ini otomatis
-     hanya menghitung gambar yang sudah dianotasi.
-  4. Data pribadi tetap di komputer Anda. Aplikasi tidak mengirim
-     apa pun ke internet.
+  1. Kualitas anotasi > kuantitas. Kotak yang pas lebih
+     berharga daripada banyak kotak yang asal.
+  2. Variasi gambar > banyak gambar mirip. Model belajar
+     dari perbedaan sudut, jarak, cahaya, dan latar.
+  3. Split dilakukan SETELAH anotasi selesai. Aplikasi ini
+     otomatis hanya menghitung gambar yang sudah dianotasi.
+  4. Data pribadi tetap di komputer Anda. Aplikasi tidak
+     mengirim apa pun ke internet selain Google Drive Anda
+     sendiri (untuk training Colab).
+  5. Bandingkan minimal 2 versi YOLO (mis. v8 vs v11)
+     untuk melihat perbedaan performa pada dataset Anda.
+
+
+── FITUR UNGGULAN ─────────────────────────────────────
+
+Aplikasi ini bukan sekadar anotator — ada beberapa fitur
+yang jarang ditemukan di tool gratis lain:
+
+  🤖  Auto-Suggest Bounding Box  (Ctrl+A)
+      Deteksi otomatis dengan model YOLO COCO pretrained.
+      Hemat waktu anotasi 30–70% untuk kelas umum.
+
+  🎨  Warna Tetap per Kelas
+      Setiap kelas punya warna sendiri, konsisten di semua
+      tab (anotator, preview, bar chart distribusi).
+
+  💾  Auto-Save + Resume
+      Anotasi tersimpan otomatis setiap perubahan. Tutup
+      aplikasi → buka lagi → lanjut dari gambar terakhir.
+
+  📥  Import Hasil Training Lengkap
+      Notebook Colab otomatis mengunduh ZIP berisi
+      results.csv, results.png, confusion_matrix.png,
+      PR curve, dll. Import ke aplikasi → viewer bawaan
+      menampilkan semua grafik tanpa buka Drive.
+
+  🎥  Prediksi Multi-Mode
+      Uji model pada gambar tunggal, seluruh frame video,
+      atau webcam real-time dengan FPS counter.
+
+  🎨  4 Tema UI
+      Midnight, Nord, Dracula, Light — sesuai preferensi.
+      Preferensi tersimpan otomatis.
+
+
+── ALUR DETAIL PER TAB ────────────────────────────────
+
+Tab 1. Proyek
+  • Isi nama proyek & peneliti
+  • Pilih folder kerja (proyek baru di folder terpisah)
+  • Pilih versi YOLO (v5/v8/v9/v10/v11/v12/v13/v26)
+  • Pilih model dasar (n/s/m/l/x)
+  • Isi daftar kelas (1 per baris)
+  • Klik "Buat Proyek Baru" → struktur folder terbentuk
+
+Tab 2. Akuisisi
+  • Video: pilih file → atur interval frame → ekstrak
+  • Webcam: pilih index kamera → capture frame
+  • Tips: 100–300 gambar per kelas, variasikan sudut
+
+Tab 3. Anotasi
+  • Drag mouse untuk bounding box
+  • Pilih kelas: klik dropdown atau tekan angka 1-9
+  • Auto-save: setiap perubahan langsung tersimpan
+  • Progress bar + distribusi kelas tampil live
+
+Tab 4. Split
+  • Pilih preset atau isi rasio manual (total = 100%)
+  • Live-count menampilkan estimasi gambar per split
+  • Klik "Jalankan Split"
+
+Tab 5. Export
+  • Klik "Susun Folder Export + data.yaml"
+  • Upload folder ke Drive:
+    MyDrive/yolo_projects/<nama_proyek>/yolo_dataset/
+
+Tab 6. Training
+  • Pilih versi YOLO & model → atur hyperparameter
+  • Klik "Generate Notebook" → upload ke Colab
+  • Runtime → T4 GPU → jalankan cell
+  • best.pt + train_results.zip otomatis terunduh
+
+Tab 7. Evaluasi
+  • Uji pada Split Test    → mAP, precision, recall
+  • Analisis results.csv   → metrik per epoch
+  • Prediksi Gambar        → uji 1 gambar
+  • Prediksi Video         → proses seluruh frame
+  • Prediksi Kamera        → webcam real-time + FPS
+  • Import Hasil Training  → viewer grafik dari Colab
+  • Lihat Hasil Terakhir   → buka eksperimen lama
+
+Tab 8. Panduan
+  • Referensi lengkap 10 sub-tab (yang sedang Anda baca)
+  • Kontrol ukuran font 10–20 pt
+  • Salin ke clipboard atau simpan sebagai file teks
+
 """
 
 
