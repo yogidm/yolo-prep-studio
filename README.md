@@ -33,14 +33,58 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 
 ## 📸 Tangkapan Layar
 
-### Tab Proyek — Setup awal proyek & kelas
+### 1. Tab Proyek — Setup awal proyek & kelas
 ![Tab Proyek](docs/screenshots/01-proyek.png)
 
-### Tab Akuisisi — Ekstrak frame dari video atau capture webcam
+### 2. Tab Akuisisi — Ekstrak frame dari video atau capture webcam
 ![Tab Akuisisi](docs/screenshots/02-akuisisi.png)
 
-### Tab Anotasi — Bounding box dengan warna tetap per kelas
+### 3. Tab Anotasi — Bounding box dengan warna tetap per kelas
 ![Tab Anotasi](docs/screenshots/03-anotasi.png)
+
+### 4. Tab Evaluasi — Validasi, prediksi, dan import hasil training
+![Tab Evaluasi](docs/screenshots/07-evaluasi.png)
+
+*Uji model dengan **🎯 Uji pada Split Test**, analisis per-epoch dengan **📊 Analisis results.csv**, uji visual dengan **🖼 Prediksi Gambar / 🎬 Prediksi Video / 🎥 Prediksi Kamera**, dan import hasil Colab dengan **📥 Import Hasil Training (ZIP)**.*
+
+---
+
+## 🎯 Hasil Prediksi
+
+### Prediksi Gambar — Uji model dengan satu gambar
+![Prediksi Gambar](docs/screenshots/04-prediksi-gambar.png)
+
+*Model mendeteksi 3 kelas: `mouse` (0.80), `keyboard` (0.81), `hand` (0.42) dengan bounding box berwarna sesuai kelas.*
+
+### Prediksi Live Kamera — Deteksi real-time dengan FPS counter
+![Prediksi Kamera](docs/screenshots/05-prediksi-kamera.png)
+
+*Real-time webcam ~20 FPS di CPU. FPS counter tampil di kiri atas. Tekan `Q` untuk berhenti.*
+
+---
+
+## 📊 Hasil Training
+
+Setelah training selesai di Colab, notebook otomatis menghasilkan `train_results.zip` yang bisa di-import ke aplikasi. Viewer bawaan menampilkan semua grafik & metrik.
+
+### Confusion Matrix — Evaluasi akurasi per kelas
+![Confusion Matrix](docs/screenshots/06-hasil-training.png)
+
+*Normalized confusion matrix. Baris `mouse` → prediksi benar 67%, sisanya tertukar dengan `keyboard` (14%) atau `hand` (22%).*
+
+### Kurva Training — Loss & mAP per epoch
+![Training Curves](docs/screenshots/06b-hasil-training-curves.png)
+
+*8 grafik: train/box_loss, train/cls_loss, train/dfl_loss, precision, recall, val/box_loss, val/cls_loss, mAP50, mAP50-95.*
+
+**Ringkasan hasil contoh**:
+| Metrik | Nilai |
+|--------|-------|
+| Total epoch | 21 |
+| mAP@0.5 | 0.27153 |
+| mAP@0.5:0.95 | 0.11067 |
+| Precision | 0.55091 |
+| Recall | 0.42328 |
 
 ---
 
