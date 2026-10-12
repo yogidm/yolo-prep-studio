@@ -59,7 +59,7 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 ### Prediksi Live Kamera — Deteksi real-time dengan FPS counter
 ![Prediksi Kamera](docs/screenshots/05-prediksi-kamera.png)
 
-*Real-time webcam ~20 FPS di CPU. FPS counter tampil di kiri atas. Tekan `Q` untuk berhenti.*
+*Real-time webcam ~20 FPS di GPU 1660s. FPS counter tampil di kiri atas. Tekan `Q` untuk berhenti.*
 
 ---
 
