@@ -24,7 +24,7 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 | 📊 **Progress Timeline** | Progress bar + filter + distribusi kelas dengan warna |
 | 🔀 **Split Fleksibel** | Rasio numerik (persen) dengan live-count dan preset |
 | 📦 **Export** | Folder `yolo_dataset/` siap-upload ke Google Drive |
-| 📓 **Notebook Generator** | `.ipynb` otomatis sesuai versi YOLO (v5/v8/v9/v10/v11) |
+| 📓 **Notebook Generator** | `.ipynb` otomatis sesuai versi YOLO (v5/v8/v9/v10/v11/v12/v13/v26) |
 | 🎯 **Evaluasi Lengkap** | Uji mAP/precision/recall, prediksi gambar/video/kamera real-time |
 | 📥 **Import Hasil Training** | ZIP dari Colab → viewer metrik + grafik di dalam aplikasi |
 | 📚 **Panduan Bawaan** | 9 sub-tab referensi lengkap langsung di dalam aplikasi |
