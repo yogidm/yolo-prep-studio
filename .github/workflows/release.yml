@@ -24,7 +24,8 @@ jobs:
       - name: Extract changelog for this version
         id: changelog
         run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
+          TAG_VERSION="${{ steps.version.outputs.VERSION }}"
+          VERSION="${TAG_VERSION#v}"
           if [ -f CHANGELOG.md ]; then
             awk -v ver="$VERSION" '
               $0 ~ "^## \\[" ver "\\]" {flag=1; next}
