@@ -19,7 +19,10 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 |-------|-----------|
 | 📥 **Akuisisi** | Capture dari webcam laptop/eksternal, ekstrak frame dari video |
 | ✏️ **Anotasi** | Drag mouse, auto-save, resume, shortcut lengkap (1-9, Space, B, N, D, C) |
-| 🤖 **Semi-Otomatis** | Auto-suggest bbox dengan YOLO COCO (`Ctrl+A`) untuk kelas umum |
+| 🧲 **Magnet Mode** | AI mendeteksi objek secara *real-time*. Arahkan mouse & klik untuk mengotaki (mirip *Magic Wand*). |
+| ✂️ **Auto-Trim** | Mengetatkan kotak anotasi secara instan (GrabCut, Contour, Otsu Threshold). |
+| 🛠 **Preprocessing** | Studio augmentasi dengan *live preview* (CLAHE, Sharpen, Contrast, Saturation, Brightness, Grayscale). |
+| 📦 **Batch Augmentasi** | Memproses seluruh gambar asli sekaligus. Nama file otomatis menyertakan metode (misal `_aug_clahe`). |
 | 🎨 **4 Tema** | Midnight, Nord, Dracula, Light — warna tetap per kelas |
 | 📊 **Progress Timeline** | Progress bar + filter + distribusi kelas dengan warna |
 | 🔀 **Split Fleksibel** | Rasio numerik (persen) dengan live-count dan preset |
@@ -27,7 +30,7 @@ Cocok untuk mahasiswa dan praktisi yang ingin mengumpulkan data, menganotasi, da
 | 📓 **Notebook Generator** | `.ipynb` otomatis sesuai versi YOLO (v5/v8/v9/v10/v11/v12/v13/v26) |
 | 🎯 **Evaluasi Lengkap** | Uji mAP/precision/recall, prediksi gambar/video/kamera real-time |
 | 📥 **Import Hasil Training** | ZIP dari Colab → viewer metrik + grafik di dalam aplikasi |
-| 📚 **Panduan Bawaan** | 9 sub-tab referensi lengkap langsung di dalam aplikasi |
+| 📚 **Panduan Bawaan** | 11 sub-tab referensi lengkap langsung di dalam aplikasi |
 
 ---
 
@@ -173,7 +176,7 @@ Atau lewat script bantu:
    - **Video**: pilih file `.mp4`/`.avi`/`.mov`, atur interval frame (default 1 frame per 15), klik *Ekstrak Frame*.
    - **Webcam**: pilih index kamera (0 = laptop, 1+ = eksternal), beri nama sesi, klik *Buka Kamera*. Kontrol: `SPASI` simpan, `A` toggle auto, `Q` keluar.
 
-3. **Anotasi** — buka Anotator, pilih kelas (atau tekan angka `1`-`9`), drag mouse untuk kotak. Anotasi **tersimpan otomatis** setiap perubahan. Kalau aplikasi ditutup lalu dibuka lagi, anotator **melanjutkan dari gambar terakhir**. Progress bar dan distribusi kelas tampil langsung.
+3. **Anotasi** — buka Anotator, pilih kelas (atau tekan angka `1`-`9`), drag mouse untuk kotak. Gunakan **Magnet Mode (G)** untuk mendeteksi objek secara instan, atau **Auto-Trim (T)** untuk mengetatkan kotak kasar. Anotasi **tersimpan otomatis**.
 
 4. **Split** — pilih preset (70/20/10, dst) atau isi angka manual (total harus 100%). Live-count menampilkan estimasi jumlah gambar per split. Random seed menjamin reproducibility.
 
@@ -201,14 +204,16 @@ Atau lewat script bantu:
 | `1` … `9` | Pilih kelas 1–9 |
 | `0` | Pilih kelas ke-10 |
 | `Space` | Simpan & lanjut ke gambar berikutnya |
-| `B` | Gambar sebelumnya |
-| `N` | Gambar berikutnya |
+| `B` / `N` | Gambar sebelumnya / berikutnya |
 | `D` / `Delete` | Undo kotak terakhir |
 | `C` | Hapus semua kotak di gambar |
 | `Ctrl+S` | Simpan tanpa pindah |
-| `Ctrl+A` | Auto-suggest bbox (butuh `ultralytics`) |
+| `Ctrl+A` | Auto-suggest bbox (YOLO COCO) |
+| `G` | **Magnet Mode** (deteksi interaktif) |
+| `T` | **Auto-Trim** kotak terakhir |
+| `P` | Buka **Preprocessing Studio** |
 | `Enter` | Terima semua usulan auto-suggest |
-| `Esc` | Tolak semua usulan |
+| `Esc` | Tolak usulan / Matikan Magnet Mode |
 | Klik kanan | Terima 1 usulan auto-suggest |
 | `←` `→` | Navigasi prev/next |
 

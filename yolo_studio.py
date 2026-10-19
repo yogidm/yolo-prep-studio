@@ -2589,40 +2589,33 @@ Prinsip penting:
   4. Data pribadi tetap di komputer Anda. Aplikasi tidak
      mengirim apa pun ke internet selain Google Drive Anda
      sendiri (untuk training Colab).
-  5. Bandingkan minimal 2 versi YOLO (mis. v8 vs v11)
-     untuk melihat perbedaan performa pada dataset Anda.
 
 
-── FITUR UNGGULAN ─────────────────────────────────────
+── FITUR UNGGULAN (v1.2.0) ────────────────────────────
 
 Aplikasi ini bukan sekadar anotator — ada beberapa fitur
 yang jarang ditemukan di tool gratis lain:
 
-  🤖  Auto-Suggest Bounding Box  (Ctrl+A)
+  🧲  Magnet Mode (G)
+      AI mendeteksi semua objek di layar. Arahkan mouse
+      (kotak berubah kuning), lalu KLIK untuk langsung
+      mengotaki secara instan (seperti Magic Wand).
+
+  ✂️  Auto-Trim Box (T)
+      Mengetatkan kotak kasar secara otomatis menggunakan
+      algoritma GrabCut, Contour, atau Adaptive Threshold.
+
+  🛠  Preprocessing Studio (P)
+      Beri efek CLAHE, Sharpen, Kontras, dll. Simpan sebagai
+      gambar baru (Augmentasi) atau Timpa aslinya.
+
+  📦  Batch Preprocessing
+      Augmentasi SEMUA gambar asli sekaligus dalam 1 klik.
+      Nama file otomatis menyertakan nama metode & tanggal.
+
+  🤖  Auto-Suggest Bounding Box (Ctrl+A)
       Deteksi otomatis dengan model YOLO COCO pretrained.
       Hemat waktu anotasi 30–70% untuk kelas umum.
-
-  🎨  Warna Tetap per Kelas
-      Setiap kelas punya warna sendiri, konsisten di semua
-      tab (anotator, preview, bar chart distribusi).
-
-  💾  Auto-Save + Resume
-      Anotasi tersimpan otomatis setiap perubahan. Tutup
-      aplikasi → buka lagi → lanjut dari gambar terakhir.
-
-  📥  Import Hasil Training Lengkap
-      Notebook Colab otomatis mengunduh ZIP berisi
-      results.csv, results.png, confusion_matrix.png,
-      PR curve, dll. Import ke aplikasi → viewer bawaan
-      menampilkan semua grafik tanpa buka Drive.
-
-  🎥  Prediksi Multi-Mode
-      Uji model pada gambar tunggal, seluruh frame video,
-      atau webcam real-time dengan FPS counter.
-
-  🎨  4 Tema UI
-      Midnight, Nord, Dracula, Light — sesuai preferensi.
-      Preferensi tersimpan otomatis.
 
 
 ── ALUR DETAIL PER TAB ────────────────────────────────
@@ -2641,10 +2634,10 @@ Tab 2. Akuisisi
   • Tips: 100–300 gambar per kelas, variasikan sudut
 
 Tab 3. Anotasi
-  • Drag mouse untuk bounding box
-  • Pilih kelas: klik dropdown atau tekan angka 1-9
-  • Auto-save: setiap perubahan langsung tersimpan
-  • Progress bar + distribusi kelas tampil live
+  • Drag mouse untuk bounding box manual.
+  • Gunakan Magnet Mode (G) atau Auto-Suggest (Ctrl+A) untuk AI.
+  • Gunakan Auto-Trim (T) untuk mengetatkan kotak kasar.
+  • Auto-save: setiap perubahan langsung tersimpan.
 
 Tab 4. Split
   • Pilih preset atau isi rasio manual (total = 100%)
@@ -2665,17 +2658,12 @@ Tab 6. Training
 Tab 7. Evaluasi
   • Uji pada Split Test    → mAP, precision, recall
   • Analisis results.csv   → metrik per epoch
-  • Prediksi Gambar        → uji 1 gambar
-  • Prediksi Video         → proses seluruh frame
-  • Prediksi Kamera        → webcam real-time + FPS
+  • Prediksi Gambar/Video/Kamera → uji visual model
   • Import Hasil Training  → viewer grafik dari Colab
-  • Lihat Hasil Terakhir   → buka eksperimen lama
 
 Tab 8. Panduan
-  • Referensi lengkap 10 sub-tab (yang sedang Anda baca)
+  • Referensi lengkap 11 sub-tab (yang sedang Anda baca)
   • Kontrol ukuran font 10–20 pt
-  • Salin ke clipboard atau simpan sebagai file teks
-
 """
 
 
@@ -2684,37 +2672,15 @@ GUIDE_ACQUIRE = """AKUISISI DATA — VIDEO & WEBCAM
 
 Tujuan: mengumpulkan gambar objek dari sekitar Anda.
 
-
 ── A. EKSTRAK FRAME DARI VIDEO ────────────────────────
-
-Cocok untuk:
-  • Rekaman HP yang sudah ada
-  • Video dari YouTube (unduh dulu, jangan streaming langsung)
-  • Rekaman CCTV atau drone
-
-Langkah:
   1. Klik "Browse..." → pilih file .mp4/.avi/.mov
   2. Atur "Ambil 1 frame setiap N frame":
-       5   →  sangat padat (banyak gambar mirip, jarang dipakai)
        15  →  default, bagus untuk gerakan lambat
        30  →  1 frame per detik (video 30 fps)
-       60  →  1 frame per 2 detik (video 30 fps)
   3. Klik "▶ Ekstrak Frame"
 
-Rumus cepat: N = fps × detik_yang_diinginkan
-  Video 30 fps, ingin 1 gambar per detik → N = 30
-  Video 30 fps, ingin 1 gambar per 2 detik → N = 60
-
-
 ── B. CAPTURE DARI WEBCAM ─────────────────────────────
-
-Cocok untuk:
-  • Objek di sekitar Anda (barang, alat, makanan)
-  • Demo cepat tanpa perlu rekam video
-
-Langkah:
-  1. Pilih "Kamera index":  0 = webcam laptop, 1+ = webcam eksternal
-     (kalau tidak yakin, coba 0 dulu)
+  1. Pilih "Kamera index":  0 = laptop, 1+ = eksternal
   2. Isi "Nama sesi" (mis. mobil_pagi, buku_meja)
   3. Klik "🎥 Buka Kamera"
   4. Kontrol jendela kamera:
@@ -2722,27 +2688,14 @@ Langkah:
        A      →  toggle mode AUTO (simpan tiap 10 frame)
        Q/ESC  →  selesai
 
-
 ── STRATEGI PENGAMBILAN GAMBAR ────────────────────────
-
-Jumlah per kelas (rule of thumb):
-  • Prototipe/eksperimen cepat : 30–50
-  • Hasil stabil untuk skripsi  : 100–300
-  • Produksi                    : 500+
-
-Variasikan:
-  ✓ Sudut pandang (depan, samping, atas, miring)
-  ✓ Jarak (dekat, sedang, jauh)
-  ✓ Pencahayaan (pagi, siang, sore, dalam ruangan)
-  ✓ Latar belakang (meja, lantai, rumput, jalan)
-  ✓ Kondisi objek (utuh, sebagian tertutup)
-  ✗ Jangan 100 gambar objek sama dari sudut yang sama
-
-Negative examples (opsional tapi berguna):
-  Ambil juga gambar yang MIRIP tapi BUKAN kelas target, agar model
-  tidak salah klasifikasi. Misalnya kalau melatih "mobil", ambil
-  beberapa gambar "truk" atau "bus" tapi JANGAN dianotasi. Ini
-  membantu model belajar batas antara kelas.
+  Jumlah per kelas (rule of thumb):
+    • Prototipe/eksperimen cepat : 30–50
+    • Hasil stabil untuk skripsi  : 100–300
+  
+  Variasikan:
+    ✓ Sudut pandang, Jarak, Pencahayaan, Latar belakang.
+    ✗ Jangan 100 gambar objek sama dari sudut yang sama.
 """
 
 
@@ -2751,19 +2704,15 @@ GUIDE_ANNOT_MANUAL = """ANOTASI MANUAL — BOUNDING BOX
 
 Tujuan: menggambar kotak di setiap objek dan memberi label kelas.
 
-
 ── LANGKAH DASAR ──────────────────────────────────────
-
-  1. Buka tab "3. Anotasi"
-  2. Klik "🖊 Buka Anotator"
-  3. Pilih kelas di dropdown (atau tekan angka 1, 2, 3, ...)
-  4. Drag mouse di atas gambar untuk menggambar kotak
-  5. Kotak otomatis tersimpan — lanjut ke objek berikutnya
-  6. Tekan SPASI untuk simpan & lanjut ke gambar berikutnya
-
+  1. Buka tab "3. Anotasi" → Klik "🖊 Buka Anotator".
+  2. Pilih kelas di dropdown (atau tekan angka 1, 2, 3, ...).
+  3. Drag mouse di atas gambar untuk menggambar kotak kasar.
+  4. (Opsional) Tekan "T" untuk Auto-Trim agar kotak lebih presisi.
+  5. Kotak otomatis tersimpan.
+  6. Tekan SPASI untuk lanjut ke gambar berikutnya.
 
 ── AUTO-SAVE (PENTING) ────────────────────────────────
-
 Anotasi Anda tersimpan OTOMATIS setiap kali:
   • selesai menggambar kotak
   • undo (D atau Del)
@@ -2771,130 +2720,44 @@ Anotasi Anda tersimpan OTOMATIS setiap kali:
   • pindah gambar (◀ ▶ atau B N atau ← →)
   • menutup jendela anotator
 
-Tidak ada tombol "save" yang harus ditekan. Aman walau laptop mati
-mendadak — semua kotak yang sudah digambar tetap ada.
-
-
-── RESUME OTOMATIS ────────────────────────────────────
-
-Kalau Anda tutup aplikasi dan buka lagi, anotator akan langsung
-melanjutkan dari gambar terakhir yang Anda kerjakan. Tidak perlu
-mencari manual.
-
-
 ── ATURAN BOUNDING BOX YANG BAIK ──────────────────────
-
-  ✓ Kotak mengelilingi objek rapat (tidak ada ruang kosong berlebih)
-  ✓ Semua sisi objek yang terlihat ada di dalam kotak
-  ✓ Untuk objek yang terpotong tepi gambar, kotak menempel ke tepi
-  ✓ Untuk objek kecil, perbesar gambar dulu (zoom) baru anotasi
-  ✓ Untuk objek berdempetan, buat kotak terpisah per objek
-  ✗ Jangan terlalu longgar — model akan belajar noise
-  ✗ Jangan terlalu sempit — memotong bagian objek
-
+  ✓ Kotak mengelilingi objek rapat (tidak ada ruang kosong).
+  ✓ Semua sisi objek yang terlihat ada di dalam kotak.
+  ✓ Gunakan fitur Auto-Trim (T) untuk objek kecil.
+  ✗ Jangan terlalu longgar — model akan belajar noise.
+  ✗ Jangan terlalu sempit — memotong bagian objek.
 
 ── KASUS KHUSUS ───────────────────────────────────────
-
-Objek tertutup sebagian:
-  Buat kotak berdasarkan bagian yang TERLIHAT saja.
-
-Objek kecil (< 5% area gambar):
-  Pertimbangkan resolusi lebih tinggi (imgsz 1024) saat training.
-
-Banyak objek dalam 1 gambar (> 10):
-  Tetap anotasi semua.
-
-Objek di luar kelas yang dilatih:
-  JANGAN dianotasi. Biarkan tanpa kotak — ini negative example.
-
-
-── KUALITAS VS KECEPATAN ──────────────────────────────
-
-Untuk mempercepat:
-  • Gunakan shortcut angka 1-9 untuk pindah kelas
-  • Tekan SPASI untuk simpan & lanjut tanpa klik
-  • Gunakan Auto-Suggest untuk kelas yang ada di COCO
-
-Untuk kualitas:
-  • Setiap 20-30 gambar, review 3-4 anotasi secara acak
-  • Perhatikan konsistensi
+Objek tertutup sebagian: Buat kotak berdasarkan bagian TERLIHAT saja.
+Objek di luar kelas yang dilatih: JANGAN dianotasi (negative example).
 """
 
 
-GUIDE_ANNOT_SEMI = """ANOTASI SEMI-OTOMATIS — AUTO-SUGGEST
-=====================================
+GUIDE_ANNOT_SEMI = """ANOTASI SEMI-OTOMATIS — AUTO-SUGGEST & MAGNET
+=============================================
 
-Fitur ini mempercepat anotasi dengan mengusulkan bounding box
-secara otomatis menggunakan model YOLO yang sudah dilatih pada
-dataset COCO (80 kelas umum).
+Fitur ini mempercepat anotasi menggunakan model YOLO COCO (80 kelas).
 
+── 80 KELAS COCO ──────────────────────────────────────
+Person, car, bicycle, bottle, cup, laptop, mouse, keyboard, dll.
 
-── PRASYARAT ──────────────────────────────────────────
-
-  1. Install ultralytics:
-       pip install ultralytics
-
-  2. Minimal satu kelas proyek Anda SAMA dengan kelas COCO.
-     Perbandingan case-insensitive.
-
-
-── 80 KELAS COCO YANG DIKENALI ────────────────────────
-
-Orang & tubuh :  person
-Kendaraan     :  bicycle, car, motorcycle, airplane, bus, train,
-                 truck, boat
-Rambu         :  traffic light, stop sign, parking meter,
-                 fire hydrant, bench
-Hewan         :  bird, cat, dog, horse, sheep, cow, elephant,
-                 bear, zebra, giraffe
-Aksesori      :  backpack, umbrella, handbag, tie, suitcase
-Makanan       :  banana, apple, sandwich, orange, broccoli,
-                 carrot, hot dog, pizza, donut, cake
-Dapur         :  bottle, wine glass, cup, fork, knife, spoon, bowl
-Perabot       :  chair, couch, potted plant, bed, dining table,
-                 toilet
-Elektronik    :  tv, laptop, mouse, remote, keyboard, cell phone
-Rumah         :  microwave, oven, toaster, sink, refrigerator,
-                 book, clock, vase, scissors, teddy bear,
-                 hair drier, toothbrush, sports ball,
-                 kite, baseball bat, baseball glove,
-                 skateboard, surfboard, tennis racket
-
-
-── CARA PAKAI ─────────────────────────────────────────
-
-  1. Buka Anotator, pilih gambar
-  2. Tekan Ctrl+A  (atau klik tombol "🤖 Auto-Suggest")
-  3. Tunggu 1–3 detik → muncul kotak oranye putus-putus
-  4. Kotak oranye = USULAN (belum final). Pilihan Anda:
-
-       Enter      →  terima SEMUA usulan → jadi kotak final
+── 1. AUTO-SUGGEST (Ctrl+A) ───────────────────────────
+  1. Tekan Ctrl+A → tunggu kotak oranye putus-putus.
+  2. Kotak oranye = USULAN (belum final). Pilihan Anda:
+       Enter      →  terima SEMUA usulan
        Esc        →  tolak semua usulan
        Klik kanan →  terima HANYA kotak yang di-klik
-       D          →  pop
 
-  5. Koreksi manual jika perlu
-  6. SPASI → simpan & lanjut
+── 2. MAGNET MODE (G) ─────────────────────────────────
+  Fitur interaktif (seperti Magic Wand di Roboflow).
+  1. Tekan "G" → AI memindai seluruh frame.
+  2. Kotak biru putus-putus akan muncul di setiap objek.
+  3. Dekatkan mouse ke salah satu objek → kotak berubah KUNING.
+  4. KLIK mouse → objek langsung dikotaki dengan warna kelas Anda.
 
-
-── KAPAN BERGUNA, KAPAN TIDAK ─────────────────────────
-
-✓ Berguna kalau kelas proyek Anda persis ada di COCO:
-    person, car, bottle, laptop, mouse, keyboard, cup, dll.
-
-✗ Tidak berguna kalau kelas spesifik:
-    helm, plat_nomor, pohon_mangga, sayur_organik, buah_merah
-    Solusinya: anotasi manual.
-
-
-── EFEKTIVITAS ────────────────────────────────────────
-
-  Person, 1 objek/gambar, sedang        30–50% hemat
-  Person + car, banyak objek            50–70% hemat
-  Kelas spesifik (helm, dll)            tidak membantu
-
-Untuk mengubah confidence threshold (default 0.35):
-  self.suggest_conf = 0.35
+── KAPAN BERGUNA ──────────────────────────────────────
+  ✓ Jika kelas Anda ada di COCO (person, car, cup, dll).
+  ✗ Tidak berguna untuk kelas khusus (helm, retakan, tomat).
 """
 
 
@@ -2907,8 +2770,17 @@ Fitur untuk memperbaiki kualitas dataset dan menduplikasi data (Augmentasi).
   2. Akan muncul dua jendela: Kiri (Asli) & Kanan (Preview).
   3. Pilih metode di dropdown (CLAHE, Sharpen, Kontras, dll).
   4. Geser slider Intensitas untuk melihat efek real-time.
-  5. Klik "Simpan Duplikat" untuk membuat gambar baru (Augmentasi).
+  5. Klik "Simpan Duplikat" untuk membuat 1 gambar baru.
      Klik "Timpa" jika ingin mengganti gambar asli.
+
+── BATCH PROSES SEMUA ASLI ────────────────────────────
+  Klik tombol "📦 Batch Proses Semua Asli" di Preprocessing Studio.
+  Aplikasi akan otomatis memproses seluruh gambar asli (tanpa _aug_)
+  dan menyimpannya sebagai gambar baru beserta label YOLO-nya.
+  
+  Nama file otomatis menjadi: 
+  [nama_asli]_aug_[metode]_[tanggal_jam].jpg
+  Contoh: sesi1_0001_aug_clahe_20261019_224500.jpg
 
 ── METODE YANG TERSEDIA ───────────────────────────────
   • CLAHE: Untuk menonjolkan retakan / gambar gelap.
@@ -2930,43 +2802,36 @@ GUIDE_SHORTCUTS = """SHORTCUT KEYBOARD — ANOTATOR
 
 Semua shortcut aktif selama jendela anotator fokus.
 
-
 ── NAVIGASI ───────────────────────────────────────────
-
   ←  atau  B           Gambar sebelumnya
   →  atau  N           Gambar berikutnya
   SPASI                Simpan & lanjut ke gambar berikutnya
   Enter                Kalau ada usulan: terima semua
-                       Kalau tidak: sama dengan SPASI
-
 
 ── EDIT KOTAK ─────────────────────────────────────────
-
-  Drag mouse           Bikin kotak baru (kelas aktif)
+  Drag mouse           Bikin kotak baru (manual)
   D  atau  Delete      Hapus kotak terakhir (undo)
   C                    Hapus semua kotak di gambar ini
   Ctrl+S               Simpan label tanpa pindah gambar
+  
   T                    Auto-Trim kotak terakhir
+  G                    Aktifkan/Mematikan Magnet Mode
   P                    Buka Preprocessing Studio
 
-
 ── PILIH KELAS ────────────────────────────────────────
-
   1  2  3  ...  9      Pilih kelas ke-N secara langsung
   0                    Pilih kelas ke-10
   Klik dropdown        Pilih kelas dengan mouse
 
-
-── AUTO-SUGGEST ───────────────────────────────────────
-
-  Ctrl+A               Jalankan deteksi COCO
-  Enter                Terima semua usulan
-  Esc                  Tolak semua usulan
+── AUTO-SUGGEST & MAGNET ──────────────────────────────
+  Ctrl+A               Jalankan deteksi COCO (Auto-Suggest)
+  G                    Jalankan deteksi COCO (Magnet Mode)
+  
+  Enter                Terima semua usulan (Auto-Suggest)
+  Esc                  Tolak semua usulan / Matikan Magnet
   Klik kanan           Terima 1 usulan
 
-
 ── WINDOW ─────────────────────────────────────────────
-
   Alt+F4 / X           Tutup jendela (auto-save + simpan posisi)
 """
 
@@ -2975,48 +2840,26 @@ GUIDE_SPLIT_EXPORT = """SPLIT DATASET & EXPORT
 ========================
 
 ── PRINSIP SPLIT ──────────────────────────────────────
-
-Dataset dibagi 3 bagian:
   Train (70–80%)  →  untuk melatih model
   Val   (10–20%)  →  untuk memantau training (early stopping)
   Test  (5–15%)   →  untuk evaluasi akhir
 
-
 ── CARA SPLIT DI APLIKASI ────────────────────────────
-
   1. Buka tab "4. Split"
   2. Aplikasi otomatis menghitung gambar yang SUDAH dianotasi
   3. Pilih preset, atau isi angka manual (harus total 100):
        70 / 20 / 10    (default)
-       80 / 10 / 10
-       80 / 15 / 5
-       60 / 20 / 20
   4. Random seed untuk reproducibility
   5. Klik "🎲 Jalankan Split"
 
-
 ── REKOMENDASI JUMLAH MINIMAL ────────────────────────
-
-  Train     : ≥ 100 gambar
-  Val       : ≥ 20  gambar
-  Test      : ≥ 20  gambar
-
+  Train: ≥ 100 gambar | Val: ≥ 20 gambar | Test: ≥ 20 gambar
 
 ── EXPORT ─────────────────────────────────────────────
-
   1. Buka tab "5. Export"
   2. Klik "📦 Susun Folder Export + data.yaml"
-  3. Klik "🗜 Buat ZIP" (opsional)
-  4. Upload ke Google Drive:
+  3. Upload ke Google Drive:
        MyDrive/yolo_projects/<nama_proyek>/yolo_dataset/
-
-
-── VALIDASI LABEL ─────────────────────────────────────
-
-Klik "🧪 Validasi Label" untuk cek format YOLO:
-  • Setiap baris: 5 angka
-  • Koordinat ternormalisasi 0–1
-  • class_id sesuai jumlah kelas
 """
 
 
@@ -3024,134 +2867,39 @@ GUIDE_TRAINING = """TRAINING DI GOOGLE COLAB
 =========================
 
 ── KENAPA COLAB ───────────────────────────────────────
-
-  ✓ Gratis (akun Google standar)
-  ✓ GPU T4 (jauh lebih cepat dari CPU)
-  ✓ Tidak perlu install CUDA di laptop
-  ✓ 12 jam per sesi
-
+  Gratis (akun Google standar), GPU T4, tidak perlu install CUDA.
 
 ── PERSIAPAN ──────────────────────────────────────────
-
-  1. Pastikan folder yolo_dataset/ sudah di Drive:
-       MyDrive/yolo_projects/<nama_proyek>/yolo_dataset/
-
+  1. Pastikan folder yolo_dataset/ sudah di Drive.
   2. Buka tab "6. Training":
-       • Pilih versi YOLO
-       • Pilih model dasar
-       • Atur hyperparameter
-       • Klik "📓 Generate Notebook"
-
-  3. Buka https://colab.research.google.com
-  4. File → Upload notebook → pilih .ipynb yang baru dibuat
-  5. Runtime → Change runtime type → T4 GPU → Save
-  6. Jalankan cell dari atas ke bawah (Shift+Enter per cell)
-
+       • Pilih versi YOLO & model dasar.
+       • Atur hyperparameter.
+       • Klik "📓 Generate Notebook".
+  3. Buka https://colab.research.google.com → Upload notebook.
+  4. Runtime → Change runtime type → T4 GPU → Save.
+  5. Jalankan cell dari atas ke bawah (Shift+Enter).
 
 ── NOTEBOOK COLAb OTOMATIS ────────────────────────────
-
-Notebook yang digenerate berisi 6 cell:
-
+Notebook yang digenerate berisi 7 cell:
   1. Install ultralytics
   2. Mount Google Drive
   3. Set path dataset
   4. Training
   5. Validasi akhir
   6. Download best.pt
-  7. Download train_results.zip ← BARU!
-
-Cell 7 otomatis meng-zip folder runs/train/ dan mengunduh:
-  • results.csv
-  • results.png
-  • confusion_matrix.png
-  • PR curve, F1 curve, dll
-
-Setelah diunduh, import ZIP ke aplikasi via:
-  Tab 7. Evaluasi → 📥 Import Hasil Training (ZIP)
-
-
-── PEMILIHAN VERSI & MODEL ────────────────────────────
-
-Versi:
-  YOLOv5    : klasik, banyak tutorial
-  YOLOv8    : stabil, dokumentasi terbaik
-  YOLOv9    : akurasi lebih tinggi
-  YOLOv10   : inference cepat
-  YOLO11    : paling baru (2024)
-
-Model (n = nano, x = extra large):
-  n  : tercepat, akurasi rendah, untuk prototipe
-  s  : seimbang, rekomendasi awal
-  m  : akurasi bagus, untuk dataset sedang
-  l  : akurasi tinggi, butuh GPU besar
-  x  : paling akurat, paling lambat
-
-Rekomendasi awal: YOLOv8n (cepat) atau YOLOv8s (seimbang).
-
-
-── HYPERPARAMETER ─────────────────────────────────────
-
-Epochs    : 100 (default). Dataset kecil: 50–100.
-Imgsz     : 640 (default). Objek kecil: 1024. Cepat: 416.
-Batch     : 16 (default). OOM? turunkan ke 8 atau 4.
-Patience  : 20 (early stopping otomatis).
-Optimizer : auto (biarkan).
-
-
-── MEMANTAU TRAINING ──────────────────────────────────
-
-Selama training, notebook akan menampilkan progress:
-  Epoch    GPU_mem  box_loss  cls_loss  dfl_loss  Instances  Size
-  1/100    2.5G     1.234     0.567     0.890     12         640
-
-Yang perlu diperhatikan:
-  • box_loss, cls_loss TURUN → model belajar
-  • Kalau loss naik lagi → overfitting
-  • mAP50 muncul di akhir tiap epoch
-
-
-── SETELAH TRAINING SELESAI ───────────────────────────
-
-Notebook otomatis download 2 file:
-
-  1. best.pt             → model terbaik
-     Simpan di folder 05_models/ proyek Anda.
-
-  2. train_results.zip   → semua hasil training
-     Import ke aplikasi via tab 7 → Import Hasil Training.
-
-Untuk bandingkan beberapa eksperimen (v8 vs v9 vs v10):
-  Latih satu per satu, simpan ZIP dengan nama berbeda,
-  import semuanya, lalu bandingkan mAP di viewer.
-
+  7. Download train_results.zip (results.csv, confusion matrix, dll)
 
 ── MASALAH UMUM ───────────────────────────────────────
-
-Colab error "Runtime disconnected":
-  • Batas gratis 12 jam, atau idle 90 menit
-  • Hasil sementara tersimpan di Drive: runs/train/weights/last.pt
-
-CUDA out of memory:
-  • Turunkan batch size (16 → 8 → 4)
-  • Turunkan imgsz (640 → 416)
-  • Ganti model ke varian n atau s
-
-Dataset tidak ditemukan:
-  • Cek path di cell "Mount Google Drive"
-  • Cek kapitalisasi nama folder (case-sensitive)
-
-train_results.zip tidak muncul:
-  • Pastikan cell terakhir dijalankan (## 6. Download semua hasil)
-  • Kalau tidak terunduh, ambil manual dari Drive:
-    MyDrive/yolo_projects/<nama>/runs/train/
+Colab "Runtime disconnected": Batas gratis 12 jam / idle 90 menit.
+CUDA out of memory: Turunkan batch size (16 → 8 → 4) atau imgsz.
+Dataset tidak ditemukan: Cek kapitalisasi nama folder di Drive.
 """
 
 
 GUIDE_EVAL = """EVALUASI MODEL
 ===============
 
-Tab Evaluasi sekarang punya 7 fitur utama:
-
+Tab Evaluasi punya 7 fitur utama:
   1. Uji pada Split Test       — hitung mAP, precision, recall
   2. Analisis results.csv      — lihat metrik per epoch
   3. Prediksi Gambar           — uji 1 gambar tunggal
@@ -3160,144 +2908,22 @@ Tab Evaluasi sekarang punya 7 fitur utama:
   6. Import Hasil Training ZIP — ekstrak grafik dari Colab
   7. Lihat Hasil Training      — buka eksperimen sebelumnya
 
-
 ── METRIK YANG DILAPORKAN ─────────────────────────────
-
-mAP@0.5
-  Mean Average Precision pada IoU threshold 0.5.
-  Target untuk dataset kecil: > 0.5
-
-mAP@0.5:0.95
-  Metrik standar benchmark. Target: > 0.3
-
-Precision
-  Dari semua prediksi, berapa persen benar?
-
-Recall
-  Dari semua objek asli, berapa persen terdeteksi?
-
-
-── UJI PADA SPLIT TEST ────────────────────────────────
-
-  1. Browse file .pt → pilih best.pt hasil Colab
-  2. Klik "🎯 Uji pada Split Test"
-  3. Aplikasi otomatis bikin data.yaml lokal
-  4. Tunggu → hasil mAP muncul di log
-
-PENTING: folder test/images/ harus ada. Kalau belum, jalankan
-Split dulu di tab 4.
-
-
-── ANALISIS RESULTS.CSV ───────────────────────────────
-
-Untuk detail per epoch:
-  1. Ambil results.csv dari Colab (folder runs/train/)
-  2. Browse ke file tersebut
-  3. Klik "📊 Analisis results.csv"
-
-Aplikasi menampilkan metrik epoch terakhir + total epoch.
-
-
-── PREDIKSI GAMBAR ────────────────────────────────────
-
-  1. Browse best.pt
-  2. Klik "🖼 Prediksi Gambar"
-  3. Dialog langsung buka di folder test proyek
-  4. Pilih gambar (bisa juga gambar baru di luar dataset)
-  5. Hasil muncul di jendela + tersimpan sebagai pred_*.jpg
-
-Hasil disimpan di folder yang sama dengan best.pt.
-
-
-── PREDIKSI VIDEO ─────────────────────────────────────
-
-  1. Browse best.pt
-  2. Klik "🎬 Prediksi Video"
-  3. Pilih file video (.mp4/.avi/.mov)
-  4. Aplikasi tanya: simpan hasil?
-       Ya     → tersimpan sebagai pred_<nama>.mp4
-       Tidak  → hanya ditampilkan
-  5. Jendela preview muncul, setiap frame dideteksi
-  6. Tekan Q atau ESC untuk berhenti
-
-Progress frame ditampilkan di atas video.
-Cocok untuk: uji rekaman CCTV, drone, HP.
-
-
-── PREDIKSI KAMERA ────────────────────────────────────
-
-  1. Browse best.pt
-  2. Klik "🎥 Prediksi Kamera"
-  3. Dialog tanya index kamera:
-       0 = webcam laptop
-       1+ = webcam eksternal
-  4. Jendela kamera langsung muncul
-  5. FPS counter tampil di kiri atas
-  6. Tekan Q atau ESC untuk berhenti
-
-Untuk performa terbaik:
-  • Gunakan model yolov8n.pt (nano)
-  • Tutup aplikasi yang pakai kamera (Zoom, Teams)
-  • Kalau lambat, ubah imgsz ke 416 di kode
-
+  mAP@0.5       : Target > 0.5
+  mAP@0.5:0.95  : Target > 0.3
+  Precision     : Sedikit false positive.
+  Recall        : Sedikit objek terlewat.
 
 ── IMPORT HASIL TRAINING (ZIP) ────────────────────────
-
-Notebook Colab otomatis mengunduh train_results.zip berisi:
-  • results.csv         → metrik per epoch
-  • results.png         → grafik loss & mAP
-  • confusion_matrix.png
-  • PR_curve.png, F1_curve.png
-  • labels.jpg          → distribusi label
-  • train_batch*.jpg    → contoh batch training
-  • val_batch*.jpg      → contoh validasi
-
-Cara import:
-  1. Klik "📥 Import Hasil Training (ZIP)"
-  2. Pilih train_results.zip
-  3. Aplikasi ekstrak ke 06_runs/train_<timestamp>/
-  4. Viewer otomatis terbuka menampilkan:
-       - Ringkasan: total epoch, mAP50, mAP50-95, precision, recall
-       - Daftar gambar di kiri (klik untuk preview)
-       - Preview besar di kanan
-       - Tombol analisis CSV, buka folder, buka dengan viewer sistem
-
-Setiap import disimpan dengan timestamp berbeda, jadi Anda
-bisa bandingkan beberapa eksperimen.
-
-
-── LIHAT HASIL TRAINING TERAKHIR ──────────────────────
-
-Klik "📂 Lihat Hasil Training Terakhir" → buka kembali eksperimen
-terbaru tanpa perlu import ulang. Berguna untuk review cepat.
-
+  Notebook Colab otomatis mengunduh train_results.zip.
+  Import via tab 7 → Viewer otomatis terbuka menampilkan
+  confusion_matrix.png, PR_curve.png, grafik mAP, dll.
 
 ── INTERPRETASI HASIL ─────────────────────────────────
-
-mAP < 0.3    →  Model belum belajar baik
-mAP 0.3–0.6  →  Wajar untuk dataset kecil
-mAP 0.6–0.8  →  Bagus
-mAP > 0.8    →  Sangat bagus
-
-Overfitting (train bagus, val/test jelek):
-  • Tambah augmentasi
-  • Tambah data
-  • Kurangi kompleksitas model (nano/small)
-
-Underfitting (semua jelek):
-  • Training lebih lama (epochs)
-  • Model lebih besar (small → medium)
-  • Cek anotasi — mungkin banyak yang salah
-
-
-── TIPS MENINGKATKAN mAP ──────────────────────────────
-
-1. Cek anotasi konsistensi — kotak harus rapat & konsisten
-2. Tambah variasi data — sudut, jarak, cahaya berbeda
-3. Seimbangkan distribusi kelas — hindari imbalance ekstrem
-4. Latih lebih lama (epochs 200–300)
-5. Coba model lebih besar (n → s → m)
-6. Periksa data leakage — gambar train jangan masuk test
+  mAP < 0.3    →  Model belum belajar baik
+  mAP 0.3–0.6  →  Wajar untuk dataset kecil
+  mAP 0.6–0.8  →  Bagus
+  mAP > 0.8    →  Sangat bagus (Cek data leakage)
 """
 
 
@@ -3307,110 +2933,25 @@ GUIDE_PREDICT = """PREDIKSI LIVE — GAMBAR, VIDEO, KAMERA
 Tab Evaluasi menyediakan 3 mode prediksi menggunakan model .pt
 yang sudah dilatih. Semua berjalan real-time tanpa internet.
 
-
 ── PERSIAPAN ──────────────────────────────────────────
-
-  1. Pastikan ultralytics terinstall:
-       pip install ultralytics
-
-  2. Punya file model .pt (best.pt dari Colab)
-     Simpan di folder 05_models/
-
-  3. Buka tab 7. Evaluasi
-  4. Browse file .pt di kolom "File model (.pt)"
-
+  1. Pastikan ultralytics terinstall (pip install ultralytics).
+  2. Punya file model .pt (best.pt dari Colab) di folder 05_models/.
+  3. Buka tab 7. Evaluasi → Browse file .pt.
 
 ── PREDIKSI GAMBAR ────────────────────────────────────
-
-Untuk uji satu gambar tunggal.
-
-  1. Klik "🖼 Prediksi Gambar"
-  2. Dialog langsung buka di folder test proyek
-     (kalau folder belum ada, buka di folder sistem)
-  3. Pilih gambar apapun (jpg/png/bmp)
-  4. Hasil muncul di jendela baru + disimpan otomatis
-     dengan nama pred_<nama_gambar>.jpg
-
-Cocok untuk: verifikasi cepat, demo skripsi, uji sampel random.
-
+  Klik "🖼 Prediksi Gambar" → pilih gambar.
+  Hasil disimpan otomatis sebagai pred_<nama_gambar>.jpg.
 
 ── PREDIKSI VIDEO ─────────────────────────────────────
-
-Untuk memproses seluruh frame video.
-
-  1. Klik "🎬 Prediksi Video"
-  2. Pilih file video (.mp4/.avi/.mov/.mkv/.webm)
-  3. Aplikasi tanya: simpan hasil?
-       Ya     → buat file pred_<nama>.mp4 di folder 05_models/
-       Tidak  → hanya tampil di jendela
-  4. Preview muncul, setiap frame dideteksi
-  5. Frame counter muncul di kiri atas
-  6. Tekan Q atau ESC untuk berhenti lebih awal
-
-Cocok untuk: rekaman CCTV, drone, HP, dashcam.
-Estimasi kecepatan: 5–30 FPS tergantung model & hardware.
-
+  Klik "🎬 Prediksi Video" → pilih video.
+  Jika disimpan, hasil masuk ke 06_runs/predictions/pred_<nama>.mp4.
 
 ── PREDIKSI KAMERA ────────────────────────────────────
-
-Untuk deteksi real-time dari webcam.
-
-  1. Klik "🎥 Prediksi Kamera"
-  2. Dialog tanya index kamera:
-       0 = webcam laptop (biasanya)
-       1+ = webcam eksternal / USB
-  3. Jendela kamera langsung muncul
-  4. FPS counter tampil di kiri atas
-  5. Tekan Q atau ESC untuk berhenti
-
-Cocok untuk: demo skripsi, uji performa real-time, monitoring.
-
+  Klik "🎥 Prediksi Kamera" → pilih index kamera (0=laptop).
+  Real-time webcam + FPS counter. Tekan Q untuk berhenti.
 
 ── TIPS PERFORMA ──────────────────────────────────────
-
-Kalau lambat, coba:
-
-  1. Pakai model nano
-       yolov8n.pt (paling cepat, akurasi sedang)
-       yolov8s.pt (seimbang)
-       yolov8m.pt+ (lebih akurat, lebih lambat)
-
-  2. Turunkan resolusi inference
-     Edit kode, cari: model(frame, verbose=False)
-     Ganti jadi:     model(frame, verbose=False, imgsz=416)
-     Lebih cepat 2-3×, akurasi turun sedikit.
-
-  3. Cek GPU
-     Kalau punya GPU NVIDIA + CUDA, ultralytics otomatis pakai GPU.
-     Cek dengan: python -c "import torch; print(torch.cuda.is_available())"
-
-  4. Tutup aplikasi lain
-     Zoom, Teams, browser banyak tab → rebut resource.
-
-
-── FORMAT OUTPUT ──────────────────────────────────────
-
-Semua hasil prediksi disimpan di folder yang sama dengan best.pt
-(biasanya 05_models/):
-
-  • pred_<nama_gambar>.jpg  → hasil prediksi gambar
-  • pred_<nama_video>.mp4   → hasil prediksi video
-
-Warna kotak di prediksi mengikuti warna kelas (sama dengan
-palet di anotator) — memudahkan identifikasi.
-
-
-── BEDA DENGAN AUTO-SUGGEST ───────────────────────────
-
-Auto-Suggest (di Anotator):
-  • Pakai model COCO pretrained (bukan model Anda)
-  • Untuk mempercepat anotasi
-  • Hanya mengenali 80 kelas umum
-
-Prediksi (di tab Evaluasi):
-  • Pakai model .pt yang sudah ANDA latih sendiri
-  • Untuk uji performa model
-  • Mengenali kelas custom Anda
+  Gunakan model nano (yolov8n.pt) untuk kecepatan maksimal.
 """
 
 
@@ -3418,72 +2959,31 @@ GUIDE_TIPS_FAQ = """TIPS & PERTANYAAN UMUM
 ========================
 
 ── TIPS PRODUKTIVITAS ─────────────────────────────────
-
-1. Batch anotasi per kelas
-2. Cek progres berkala
-3. Review sampling tiap 100 gambar
-4. Backup rutin ke cloud
-5. Gunakan versi YOLO yang stabil
-
+1. Batch anotasi per kelas.
+2. Cek progres berkala di tab 3.
+3. Backup rutin folder proyek ke cloud.
+4. Gunakan versi YOLO yang stabil (v8 atau v11).
 
 ── PERTANYAAN UMUM ────────────────────────────────────
-
 Q: Berapa gambar minimal?
 A: Prototipe: 30–50 per kelas. Stabil: 100–300 per kelas.
 
 Q: Berapa lama training di Colab?
 A: 100 epoch, 500 gambar, T4: 15–40 menit.
 
-Q: Colab terputus, harus mulai dari nol?
-A: Tidak. Hasil tersimpan di Drive: runs/train/weights/last.pt
-
 Q: Anotasi hilang saat aplikasi crash?
 A: Kemungkinan kecil. Auto-save setiap perubahan.
-
-Q: Salah pilih kelas untuk beberapa gambar?
-A: Buka anotator → cari gambar → hapus (C) → gambar ulang.
-
-Q: Bisa ganti versi YOLO setelah training?
-A: Ya. Ulangi langkah 6 dengan versi berbeda.
-
-Q: Apakah data aman?
-A: Ya. Aplikasi tidak kirim data ke server mana pun.
 
 Q: Kenapa auto-suggest tidak deteksi apa pun?
 A: ultralytics belum install, atau kelas tidak ada di COCO.
 
-Q: Bisa export ke COCO JSON / VOC?
-A: Belum. Saat ini hanya YOLO.
-
-Q: Dataset tidak rata antar kelas?
-A: Kumpulkan data kelas minoritas, atau gabungkan kelas mirip.
-
-Q: Bisa impor dataset Roboflow?
-A: Belum ada importer otomatis. Copy folder images/ ke
-   01_raw/frames/ dan labels/ ke 01_raw/labels/.
-
 Q: Apa arti warna kotak di anotator?
 A: Warna tetap per kelas (lihat legend). Oranye dashed = usulan.
-   Solid berwarna = anotasi final.
-
+   Biru/Kuning dashed = Magnet Mode. Solid = anotasi final.
 
 ── SUMBER BELAJAR ─────────────────────────────────────
-
 Dokumentasi: https://docs.ultralytics.com/
 Paper YOLO: Jocher et al. (2023), Wang et al. (2024).
-Tutorial: cari "YOLOv8 custom dataset colab" di YouTube.
-
-Anotasi alternatif:
-  LabelImg  — desktop gratis
-  CVAT      — web kolaboratif
-  Roboflow  — web berbayar
-
-
-── KONTAK & KONTRIBUSI ────────────────────────────────
-
-Bug atau saran: buka issue di repository GitHub proyek.
-
-Semoga sukses dengan proyek deteksi objek Anda!
 """
 
 
